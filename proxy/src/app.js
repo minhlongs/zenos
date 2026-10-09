@@ -25,6 +25,8 @@ const { executeWithFailover } = require('./failover');
 const { initDatabase } = require('./db');
 const { TaskStore } = require('./task-store');
 const { createMemoryRouter } = require('./routes-memory');
+const { ApprovalGate } = require('./approval-gate');
+const { createSecurityRouter } = require('./routes-security');
 
 function createApp(options = {}) {
   const app = express();
@@ -46,6 +48,7 @@ function createApp(options = {}) {
   taskStore.recoverDanglingTasks();
 
   const markdownDir = options.markdownDir || process.env.ZENOS_MARKDOWN_DIR || path.join(__dirname, '../../memory/markdown');
+  const approvalGate = options.approvalGate || new ApprovalGate();
 
   app.disable('x-powered-by');
   app.use(helmet({ contentSecurityPolicy: false }));
@@ -63,6 +66,7 @@ function createApp(options = {}) {
 
   // Mount memory, tasks, and session routes
   app.use('/v1', createMemoryRouter({ taskStore, markdownDir }));
+  app.use('/v1', createSecurityRouter({ approvalGate, allowedRoots: options.allowedRoots }));
 
   // GET /health
   app.get('/health', (req, res) => {
