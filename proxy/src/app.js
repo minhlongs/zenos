@@ -6,9 +6,7 @@ const helmet = require('helmet');
 const path = require('node:path');
 const {
   BODY_LIMIT,
-  LMSTUDIO_URL,
   UPSTREAM_URLS,
-  DEFAULT_MODEL,
   MODEL_ALIASES,
   CONCURRENCY_LIMIT,
   MAX_QUEUE_DEPTH,
@@ -16,17 +14,16 @@ const {
 } = require('./config');
 const { dnsRebindingGuard, safeLogger, redactSecrets } = require('./security');
 const { sendAnthropicError, mapErrorToAnthropic } = require('./errors');
-const { translateAnthropicToOpenAI, translateOpenAIToAnthropic } = require('./translator');
-const { fetchUpstream } = require('./upstream');
-const { handleStreamingResponse } = require('./streaming');
-const { resolveModel, validateCapabilities } = require('./router');
 const { ConcurrencyGate } = require('./queue');
-const { executeWithFailover } = require('./failover');
 const { initDatabase } = require('./db');
 const { TaskStore } = require('./task-store');
 const { createMemoryRouter } = require('./routes-memory');
 const { ApprovalGate } = require('./approval-gate');
 const { createSecurityRouter } = require('./routes-security');
+const { TelemetryCollector } = require('./telemetry');
+const { createTelemetryRouter, createTelemetryMiddleware } = require('./routes-telemetry');
+const { createDashboardRouter } = require('./routes-dashboard');
+const { createAnthropicRouter } = require('./routes-anthropic');
 
 function createApp(options = {}) {
   const app = express();
@@ -49,6 +46,7 @@ function createApp(options = {}) {
 
   const markdownDir = options.markdownDir || process.env.ZENOS_MARKDOWN_DIR || path.join(__dirname, '../../memory/markdown');
   const approvalGate = options.approvalGate || new ApprovalGate();
+  const telemetry = options.telemetry || new TelemetryCollector();
 
   app.disable('x-powered-by');
   app.use(helmet({ contentSecurityPolicy: false }));
@@ -62,11 +60,21 @@ function createApp(options = {}) {
   }));
   app.use(dnsRebindingGuard);
   app.use(safeLogger);
+  app.use(createTelemetryMiddleware(telemetry));
   app.use(express.json({ limit: options.bodyLimit || BODY_LIMIT }));
 
-  // Mount memory, tasks, and session routes
+  // Mount API routers
+  app.use('/v1', createAnthropicRouter({
+    upstreamUrls,
+    aliasMap,
+    defaultModel,
+    gate,
+    capabilities: options.capabilities || {}
+  }));
   app.use('/v1', createMemoryRouter({ taskStore, markdownDir }));
   app.use('/v1', createSecurityRouter({ approvalGate, allowedRoots: options.allowedRoots }));
+  app.use('/v1', createTelemetryRouter({ telemetry }));
+  app.use('/dashboard', createDashboardRouter({ telemetry, approvalGate }));
 
   // GET /health
   app.get('/health', (req, res) => {
@@ -75,98 +83,9 @@ function createApp(options = {}) {
       uptime: Math.floor(process.uptime()),
       timestamp: new Date().toISOString(),
       queue: gate.getMetrics(),
-      upstreams: upstreamUrls
+      upstreams: upstreamUrls,
+      telemetry: telemetry.getSummary()
     });
-  });
-
-  // GET /v1/models
-  app.get('/v1/models', async (req, res) => {
-    try {
-      const upstreamRes = await executeWithFailover(upstreamUrls, async (url) => {
-        return fetchUpstream('/v1/models', { method: 'GET' }, req.signal, url);
-      }, { clientSignal: req.signal });
-
-      if (!upstreamRes.ok) {
-        return sendAnthropicError(res, 502, 'api_error', `Upstream models returned ${upstreamRes.status}`);
-      }
-      const data = await upstreamRes.json();
-      const models = Array.isArray(data.data) ? data.data : [];
-      res.status(200).json({
-        data: models.map(m => ({
-          id: m.id,
-          type: 'model',
-          display_name: m.id,
-          created_at: new Date((m.created || 0) * 1000).toISOString()
-        })),
-        has_more: false
-      });
-    } catch (err) {
-      const { status, type } = mapErrorToAnthropic(err);
-      sendAnthropicError(res, status, type, redactSecrets(err.message));
-    }
-  });
-
-  // POST /v1/messages
-  app.post('/v1/messages', async (req, res) => {
-    let openAiReq;
-    const requestedModel = req.body && req.body.model;
-
-    try {
-      if (!requestedModel || typeof requestedModel !== 'string') {
-        const err = new Error('Missing required field: model');
-        err.status = 400;
-        throw err;
-      }
-      const resolvedModel = resolveModel(requestedModel, aliasMap, defaultModel);
-      validateCapabilities(resolvedModel, req.body, options.capabilities || {});
-      openAiReq = translateAnthropicToOpenAI(req.body);
-      openAiReq.model = resolvedModel;
-    } catch (err) {
-      const { status, type } = mapErrorToAnthropic(err, 400);
-      return sendAnthropicError(res, status, type, redactSecrets(err.message));
-    }
-
-    const bypass = req.headers['x-zenos-bypass-queue'] === 'true' || req.headers['x-bypass-queue'] === 'true';
-
-    try {
-      await gate.enqueue(async () => {
-        return executeWithFailover(upstreamUrls, async (url) => {
-          const upstreamRes = await fetchUpstream(
-            '/v1/chat/completions',
-            {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify(openAiReq)
-            },
-            req.signal,
-            url
-          );
-
-          if (!upstreamRes.ok) {
-            let errDetail = `Upstream error ${upstreamRes.status}`;
-            try {
-              const errBody = await upstreamRes.json();
-              if (errBody && errBody.error && errBody.error.message) errDetail = errBody.error.message;
-            } catch { /* ignore */ }
-            const err = new Error(errDetail);
-            err.status = upstreamRes.status;
-            throw err;
-          }
-
-          if (openAiReq.stream) {
-            return handleStreamingResponse(upstreamRes, res, req, requestedModel);
-          }
-
-          const openAiData = await upstreamRes.json();
-          const anthropicEnvelope = translateOpenAIToAnthropic(openAiData, requestedModel);
-          return res.status(200).json(anthropicEnvelope);
-        }, { clientSignal: req.signal });
-      }, req.signal, { bypass });
-    } catch (err) {
-      if (res.headersSent) return;
-      const { status, type } = mapErrorToAnthropic(err, 502);
-      return sendAnthropicError(res, status, type, redactSecrets(err.message));
-    }
   });
 
   // 404 handler
