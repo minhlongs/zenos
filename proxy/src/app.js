@@ -3,16 +3,36 @@
 const express = require('express');
 const cors = require('cors');
 const helmet = require('helmet');
-const { BODY_LIMIT, LMSTUDIO_URL } = require('./config');
+const {
+  BODY_LIMIT,
+  LMSTUDIO_URL,
+  UPSTREAM_URLS,
+  DEFAULT_MODEL,
+  MODEL_ALIASES,
+  CONCURRENCY_LIMIT,
+  MAX_QUEUE_DEPTH,
+  QUEUE_TIMEOUT_MS
+} = require('./config');
 const { dnsRebindingGuard, safeLogger, redactSecrets } = require('./security');
-const { sendAnthropicError } = require('./errors');
+const { sendAnthropicError, mapErrorToAnthropic } = require('./errors');
 const { translateAnthropicToOpenAI, translateOpenAIToAnthropic } = require('./translator');
 const { fetchUpstream } = require('./upstream');
 const { handleStreamingResponse } = require('./streaming');
+const { resolveModel, validateCapabilities } = require('./router');
+const { ConcurrencyGate } = require('./queue');
+const { executeWithFailover } = require('./failover');
 
 function createApp(options = {}) {
   const app = express();
-  const upstreamUrl = options.upstreamUrl || LMSTUDIO_URL;
+  const upstreamUrls = options.upstreamUrls || (options.upstreamUrl ? [options.upstreamUrl] : UPSTREAM_URLS);
+  const aliasMap = options.modelAliases !== undefined ? options.modelAliases : MODEL_ALIASES;
+  const defaultModel = options.defaultModel !== undefined ? options.defaultModel : (process.env.LMSTUDIO_DEFAULT_MODEL || null);
+
+  const gate = options.gate || new ConcurrencyGate({
+    concurrency: options.concurrency ?? CONCURRENCY_LIMIT,
+    maxQueueDepth: options.maxQueueDepth ?? MAX_QUEUE_DEPTH,
+    queueTimeoutMs: options.queueTimeoutMs ?? QUEUE_TIMEOUT_MS
+  });
 
   app.disable('x-powered-by');
   app.use(helmet({ contentSecurityPolicy: false }));
@@ -33,16 +53,21 @@ function createApp(options = {}) {
     res.status(200).json({
       status: 'ok',
       uptime: Math.floor(process.uptime()),
-      timestamp: new Date().toISOString()
+      timestamp: new Date().toISOString(),
+      queue: gate.getMetrics(),
+      upstreams: upstreamUrls
     });
   });
 
   // GET /v1/models
   app.get('/v1/models', async (req, res) => {
     try {
-      const upstreamRes = await fetchUpstream('/v1/models', { method: 'GET' }, req.signal, upstreamUrl);
+      const upstreamRes = await executeWithFailover(upstreamUrls, async (url) => {
+        return fetchUpstream('/v1/models', { method: 'GET' }, req.signal, url);
+      }, { clientSignal: req.signal });
+
       if (!upstreamRes.ok) {
-        return sendAnthropicError(res, 502, 'api_error', `Upstream models endpoint returned ${upstreamRes.status}`);
+        return sendAnthropicError(res, 502, 'api_error', `Upstream models returned ${upstreamRes.status}`);
       }
       const data = await upstreamRes.json();
       const models = Array.isArray(data.data) ? data.data : [];
@@ -56,52 +81,71 @@ function createApp(options = {}) {
         has_more: false
       });
     } catch (err) {
-      sendAnthropicError(res, err.status || 502, err.code || 'api_error', redactSecrets(err.message));
+      const { status, type } = mapErrorToAnthropic(err);
+      sendAnthropicError(res, status, type, redactSecrets(err.message));
     }
   });
 
   // POST /v1/messages
   app.post('/v1/messages', async (req, res) => {
     let openAiReq;
+    const requestedModel = req.body && req.body.model;
+
     try {
+      if (!requestedModel || typeof requestedModel !== 'string') {
+        const err = new Error('Missing required field: model');
+        err.status = 400;
+        throw err;
+      }
+      const resolvedModel = resolveModel(requestedModel, aliasMap, defaultModel);
+      validateCapabilities(resolvedModel, req.body, options.capabilities || {});
       openAiReq = translateAnthropicToOpenAI(req.body);
+      openAiReq.model = resolvedModel;
     } catch (err) {
-      return sendAnthropicError(res, 400, 'invalid_request_error', redactSecrets(err.message));
+      const { status, type } = mapErrorToAnthropic(err, 400);
+      return sendAnthropicError(res, status, type, redactSecrets(err.message));
     }
 
+    const bypass = req.headers['x-zenos-bypass-queue'] === 'true' || req.headers['x-bypass-queue'] === 'true';
+
     try {
-      const upstreamRes = await fetchUpstream(
-        '/v1/chat/completions',
-        {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(openAiReq)
-        },
-        req.signal,
-        upstreamUrl
-      );
+      await gate.enqueue(async () => {
+        return executeWithFailover(upstreamUrls, async (url) => {
+          const upstreamRes = await fetchUpstream(
+            '/v1/chat/completions',
+            {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify(openAiReq)
+            },
+            req.signal,
+            url
+          );
 
-      if (!upstreamRes.ok) {
-        let errDetail = `Upstream error ${upstreamRes.status}`;
-        try {
-          const errBody = await upstreamRes.json();
-          if (errBody && errBody.error && errBody.error.message) {
-            errDetail = errBody.error.message;
+          if (!upstreamRes.ok) {
+            let errDetail = `Upstream error ${upstreamRes.status}`;
+            try {
+              const errBody = await upstreamRes.json();
+              if (errBody && errBody.error && errBody.error.message) errDetail = errBody.error.message;
+            } catch { /* ignore */ }
+            const err = new Error(errDetail);
+            err.status = upstreamRes.status;
+            throw err;
           }
-        } catch { /* ignore */ }
-        return sendAnthropicError(res, 502, 'api_error', redactSecrets(errDetail));
-      }
 
-      if (openAiReq.stream) {
-        return handleStreamingResponse(upstreamRes, res, req, req.body.model);
-      }
+          if (openAiReq.stream) {
+            return handleStreamingResponse(upstreamRes, res, req, requestedModel);
+          }
 
-      const openAiData = await upstreamRes.json();
-      const anthropicEnvelope = translateOpenAIToAnthropic(openAiData, req.body.model);
-      return res.status(200).json(anthropicEnvelope);
+          const openAiData = await upstreamRes.json();
+          const anthropicEnvelope = translateOpenAIToAnthropic(openAiData, requestedModel);
+          return res.status(200).json(anthropicEnvelope);
+        }, { clientSignal: req.signal });
+      }, req.signal, { bypass });
     } catch (err) {
       if (res.headersSent) return;
-      return sendAnthropicError(res, err.status || 502, err.code || 'api_error', redactSecrets(err.message));
+      const { status, type } = mapErrorToAnthropic(err, 502);
+      return sendAnthropicError(res, status, type, redactSecrets(err.message));
     }
   });
 
@@ -119,7 +163,8 @@ function createApp(options = {}) {
     if (err instanceof SyntaxError && err.status === 400 && 'body' in err) {
       return sendAnthropicError(res, 400, 'invalid_request_error', 'Malformed JSON in request body');
     }
-    return sendAnthropicError(res, err.status || 500, 'api_error', redactSecrets(err.message));
+    const { status, type } = mapErrorToAnthropic(err, 500);
+    return sendAnthropicError(res, status, type, redactSecrets(err.message));
   });
 
   return app;

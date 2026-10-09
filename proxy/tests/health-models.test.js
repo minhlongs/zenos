@@ -49,13 +49,19 @@ describe('Health and Models Contract', () => {
     if (mockUpstream) await new Promise(r => mockUpstream.close(r));
   });
 
-  it('GET /health returns 200 with status ok and no secrets', async () => {
+  it('GET /health returns 200 with status ok, queue metrics, and upstreams', async () => {
     const res = await fetch(`http://127.0.0.1:${proxyPort}/health`);
     assert.equal(res.status, 200);
     const body = await res.json();
     assert.equal(body.status, 'ok');
     assert.equal(typeof body.uptime, 'number');
     assert.equal(typeof body.timestamp, 'string');
+    assert.ok(body.queue);
+    assert.equal(body.queue.concurrency, 1);
+    assert.equal(body.queue.running, 0);
+    assert.equal(body.queue.queued, 0);
+    assert.ok(Array.isArray(body.upstreams));
+    assert.equal(body.upstreams.length, 1);
     // Ensure no secrets leaked
     assert.equal(body.apiKey, undefined);
     assert.equal(body.secret, undefined);
