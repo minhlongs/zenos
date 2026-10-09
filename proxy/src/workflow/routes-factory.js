@@ -8,6 +8,7 @@ const { AgentSupervisor } = require('./agent-supervisor');
 const { ProcessJail } = require('./process-jail');
 const { ReactAgentLoop } = require('./react-agent-loop');
 const { createEvalRouter } = require('./routes-eval');
+const { createSwarmRouter } = require('./routes-swarm');
 
 function createFactoryRouter(options = {}) {
   const router = express.Router();
@@ -140,6 +141,11 @@ function createFactoryRouter(options = {}) {
   });
 
   router.use('/eval', createEvalRouter({
+    ...options,
+    broadcast
+  }));
+
+  router.use('/swarm', createSwarmRouter({
     ...options,
     broadcast
   }));

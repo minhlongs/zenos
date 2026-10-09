@@ -12,6 +12,7 @@ import { GoalPipeline } from '../components/GoalPipeline';
 import { SupervisorMonitor } from '../components/SupervisorMonitor';
 import { AgentConsole } from '../components/AgentConsole';
 import { EvalConsole } from '../components/EvalConsole';
+import { SwarmConsole } from '../components/SwarmConsole';
 import { useFactoryEvents } from '../hooks/useFactoryEvents';
 import { RefreshCw, Activity, Cpu } from 'lucide-react';
 
@@ -91,6 +92,7 @@ export default function DashboardPage() {
 
       {tab === 'factory' ? (
         <div className="space-y-6">
+          <SwarmConsole />
           <AgentConsole />
           <EvalConsole />
           <SupervisorMonitor />
