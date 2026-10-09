@@ -7,6 +7,7 @@ const { GoalManager } = require('./goal-manager');
 const { AgentSupervisor } = require('./agent-supervisor');
 const { ProcessJail } = require('./process-jail');
 const { ReactAgentLoop } = require('./react-agent-loop');
+const { createEvalRouter } = require('./routes-eval');
 
 function createFactoryRouter(options = {}) {
   const router = express.Router();
@@ -137,6 +138,11 @@ function createFactoryRouter(options = {}) {
     const checkpoints = options.taskStore.listCheckpoints(req.params.id, 20);
     return res.status(200).json({ task, checkpoints });
   });
+
+  router.use('/eval', createEvalRouter({
+    ...options,
+    broadcast
+  }));
 
   router.get('/events', (req, res) => {
     res.setHeader('Content-Type', 'text/event-stream');

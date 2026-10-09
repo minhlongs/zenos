@@ -52,6 +52,14 @@ Solo software founders and technical architects operating on macOS (M1/M2/M3/M4 
 - Step-by-step state checkpointing into SQLite `TaskStore` with context compactor window sliding.
 - Live SSE telemetry streaming to the frontend `AgentConsole`.
 
+### FR-9: Automated Evaluation & Self-Correction Feedback Loops (`EvalRunner` & `ReflexionLoop`)
+- Deterministic SWE micro-benchmarks with isolated test workspaces (`EvalBenchmarkSuite`).
+- Context-efficient mini-stack extractor isolating failure lines and 4-line code context (`DiagnosticExtractor`).
+- Multi-turn Reflexion (Critique-Revision) self-repair loop applying surgical patches upon test failures.
+- Durable relational SQLite scoring (`EvalStore` storing `eval_runs` and `eval_cases` for Pass@1, recovery rate, and latency metrics).
+- Subprocess environment isolation clearing `NODE_TEST_CONTEXT` in `ProcessJail`.
+- Live Next.js operator console with real-time Pass@1, recovery rate metrics, and streaming case diagnostics (`EvalConsole`).
+
 ## Non-Functional Requirements
 - Zero external proxy dependencies.
 - 100% green test pass rate.

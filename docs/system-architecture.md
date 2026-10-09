@@ -45,6 +45,14 @@ ZenOS is an audit-first, local-first personal AI workstation engineered for Appl
 │  Gate 9 Autonomous ReAct Loop (proxy/src/workflow/):        │
 │  - tool-harness.js: Native 5-tool developer suite           │
 │  - react-agent-loop.js: Multi-turn Reason+Act engine        │
+│                                                             │
+│  Gate 10 Automated Evaluation & Self-Correction:            │
+│  - eval-benchmarks.js: SWE micro-benchmark suite            │
+│  - diagnostic-extractor.js: Context-efficient stack parsing │
+│  - reflexion-loop.js: Multi-turn critique-revision repair   │
+│  - eval-store.js: SQLite eval_runs & eval_cases persistence │
+│  - eval-runner.js: Orchestrates isolated test execution     │
+│  - routes-eval.js: /v1/factory/eval/* REST & SSE endpoints  │
 └──────────────────────────────┬──────────────────────────────┘
                                │
                                ▼ Local Loopback (Port 1234)
@@ -69,8 +77,32 @@ ZenOS is an audit-first, local-first personal AI workstation engineered for Appl
    - Automatically marks orphaned tasks as `INTERRUPTED` or transitions them to resume queues.
    - Dispatches supervisor events via SSE to the Factory Dashboard.
 
+## Gate 10 Automated Evaluation & Reflexion Self-Correction Architecture
+
+1. **`diagnostic-extractor.js` (Mini-Stack Sanitization)**:
+   - Filters extraneous Node.js internal runtime and `node_modules` frames.
+   - Extracts exact assertion failure messages, failure file, and 1-indexed line number.
+   - Captures surgical 4-line source code context radius without blowing prompt context on local Apple Silicon models.
+
+2. **`eval-benchmarks.js` (Deterministic SWE Micro-Benchmarks)**:
+   - Self-contained, realistic bug repair tasks (`bug_sort_null`, `bug_off_by_one`, `bug_regex_escape`, `bug_async_race`).
+   - Isolated temporary workspaces initialized with mock test runners and reproducible setup files.
+
+3. **`reflexion-loop.js` (Multi-Turn Critique-Revision)**:
+   - Analyzes test verifier failure diagnostics and prompts LLM with diagnostic mini-stacks.
+   - Applies targeted code patches and re-runs test suite iteratively.
+   - Tracks retry attempts, critique history, and error transitions.
+
+4. **`eval-store.js` & `eval-runner.js` (Persistence & Execution)**:
+   - SQLite tables `eval_runs` and `eval_cases` compute Pass@1, recovery rate, duration, and error traces.
+   - Test execution isolated inside `ProcessJail` with environment sanitization (`delete env.NODE_TEST_CONTEXT`).
+
+5. **`EvalConsole.tsx` (Operator Portal)**:
+   - Real-time Next.js console displaying Pass@1, Reflexion recovery rate, case breakdowns, and live SSE streaming logs.
+
 ## Invariants
 - **0 external npm dependencies** in proxy (100% native Node.js).
 - **< 200 LOC per file** across all source and test modules.
 - **Metal GPU safety**: Strict single-concurrency for local inference.
 - **Process Tree Cleanup**: 100% of child processes terminated on timeout or abort.
+- **Subprocess Test Isolation**: Child test processes cleanly isolated from parent test harnesses.

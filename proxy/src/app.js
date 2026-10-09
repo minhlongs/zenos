@@ -25,6 +25,7 @@ const { createTelemetryRouter, createTelemetryMiddleware } = require('./routes-t
 const { createDashboardRouter } = require('./routes-dashboard');
 const { createAnthropicRouter } = require('./routes-anthropic');
 const { createFactoryRouter } = require('./workflow/routes-factory');
+const { EvalStore } = require('./workflow/eval-store');
 
 function createApp(options = {}) {
   const app = express();
@@ -64,6 +65,8 @@ function createApp(options = {}) {
   app.use(createTelemetryMiddleware(telemetry));
   app.use(express.json({ limit: options.bodyLimit || BODY_LIMIT }));
 
+  const evalStore = options.evalStore || new EvalStore(db);
+
   // Mount API routers
   app.use('/v1', createAnthropicRouter({
     upstreamUrls,
@@ -75,7 +78,7 @@ function createApp(options = {}) {
   app.use('/v1', createMemoryRouter({ taskStore, markdownDir }));
   app.use('/v1', createSecurityRouter({ approvalGate, allowedRoots: options.allowedRoots }));
   app.use('/v1', createTelemetryRouter({ telemetry }));
-  app.use('/v1/factory', createFactoryRouter({ taskStore }));
+  app.use('/v1/factory', createFactoryRouter({ taskStore, evalStore, db }));
   app.use('/dashboard', createDashboardRouter({ telemetry, approvalGate }));
 
   // GET /health

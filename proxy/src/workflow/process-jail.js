@@ -40,6 +40,7 @@ class ProcessJail extends EventEmitter {
       const timeoutMs = options.timeoutMs || this.defaultTimeoutMs;
       const cwd = options.cwd || process.cwd();
       const env = { ...process.env, ...(options.env || {}) };
+      delete env.NODE_TEST_CONTEXT;
 
       this.command = `${command} ${args.join(' ')}`.trim();
       this.startedAt = new Date().toISOString();

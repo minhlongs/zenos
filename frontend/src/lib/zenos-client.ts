@@ -151,3 +151,5 @@ export async function runAgentTask(prompt: string, maxIterations = 8): Promise<A
   }
 }
 
+export * from './zenos-eval-client';
+
