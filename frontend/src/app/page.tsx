@@ -10,6 +10,7 @@ import { ZenStudio } from '../components/ZenStudio';
 import { CookConsole } from '../components/CookConsole';
 import { GoalPipeline } from '../components/GoalPipeline';
 import { SupervisorMonitor } from '../components/SupervisorMonitor';
+import { AgentConsole } from '../components/AgentConsole';
 import { useFactoryEvents } from '../hooks/useFactoryEvents';
 import { RefreshCw, Activity, Cpu } from 'lucide-react';
 
@@ -89,6 +90,7 @@ export default function DashboardPage() {
 
       {tab === 'factory' ? (
         <div className="space-y-6">
+          <AgentConsole />
           <SupervisorMonitor />
           <GoalPipeline />
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">

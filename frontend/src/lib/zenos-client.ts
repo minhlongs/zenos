@@ -1,5 +1,5 @@
 import { TelemetrySummary, ApprovalRecord, TelemetryEvent } from '../types/zenos';
-import { ZenPlan, CookCycleResult, GoalStatus, SupervisorStatus } from '../types/factory';
+import { ZenPlan, CookCycleResult, GoalStatus, SupervisorStatus, AgentRunResponse } from '../types/factory';
 
 const BASE_URL = process.env.NEXT_PUBLIC_ZENOS_URL || 'http://127.0.0.1:4000';
 
@@ -136,3 +136,18 @@ export async function killAllJails(): Promise<number | null> {
     return null;
   }
 }
+
+export async function runAgentTask(prompt: string, maxIterations = 8): Promise<AgentRunResponse | null> {
+  try {
+    const res = await fetch(`${BASE_URL}/v1/factory/agent/run`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ prompt, maxIterations })
+    });
+    if (!res.ok) return null;
+    return await res.json() as AgentRunResponse;
+  } catch {
+    return null;
+  }
+}
+

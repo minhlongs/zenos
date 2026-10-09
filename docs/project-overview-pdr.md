@@ -44,6 +44,14 @@ Solo software founders and technical architects operating on macOS (M1/M2/M3/M4 
 - SQLite boot reconciliation recovering dangling in-flight tasks and cleaning orphaned process trees.
 - Emergency `kill-all` control endpoint and dark-mode Supervisor UI monitor.
 
+### FR-8: Autonomous ReAct Agent Loop & Local Tool Harness (`ReactAgentLoop` & `ToolHarness`)
+- Zero-dependency local developer tool harness providing `read_file`, `write_file`, `edit_file`, `list_files`, and `execute_command`.
+- Workspace isolation via `PathGuard` and sandboxed command execution via `ProcessJail` and `CommandGuard`.
+- Autonomous multi-turn Reason+Act execution with XML `<tool_call>` parsing.
+- Metal GPU single-concurrency serialization via `ConcurrencyGate`.
+- Step-by-step state checkpointing into SQLite `TaskStore` with context compactor window sliding.
+- Live SSE telemetry streaming to the frontend `AgentConsole`.
+
 ## Non-Functional Requirements
 - Zero external proxy dependencies.
 - 100% green test pass rate.

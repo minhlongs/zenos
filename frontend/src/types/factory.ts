@@ -100,3 +100,25 @@ export interface SupervisorStatus {
   bootReconciledCount: number;
   activeJails: SupervisorJail[];
 }
+
+export interface AgentRunResponse {
+  taskId: string;
+  status: string;
+}
+
+export interface AgentEventMessage {
+  type: 'agent_start' | 'agent_thought' | 'agent_tool_call' | 'agent_tool_result' | 'agent_complete' | 'agent_error';
+  taskId: string;
+  iteration?: number;
+  thought?: string;
+  tool?: string;
+  args?: Record<string, unknown>;
+  result?: {
+    success?: boolean;
+    output?: string;
+    error?: string;
+  };
+  output?: string;
+  error?: string;
+}
+

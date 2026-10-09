@@ -6,6 +6,7 @@ const { CookRunner } = require('./cook-runner');
 const { GoalManager } = require('./goal-manager');
 const { AgentSupervisor } = require('./agent-supervisor');
 const { ProcessJail } = require('./process-jail');
+const { ReactAgentLoop } = require('./react-agent-loop');
 
 function createFactoryRouter(options = {}) {
   const router = express.Router();
@@ -99,6 +100,42 @@ function createFactoryRouter(options = {}) {
     const killed = ProcessJail.killAll('SIGKILL');
     broadcast('supervisor_kill_all', { killedCount: killed });
     return res.status(200).json({ success: true, killedCount: killed });
+  });
+
+  router.post('/agent/run', async (req, res) => {
+    const { prompt, workspaceRoot, maxIterations = 8 } = req.body || {};
+    if (!prompt) return res.status(400).json({ error: 'prompt is required' });
+
+    const loop = new ReactAgentLoop({
+      modelClient: options.modelClient,
+      concurrencyGate: options.concurrencyGate,
+      taskStore: options.taskStore,
+      supervisor: agentSupervisor,
+      workspaceRoot: workspaceRoot || process.cwd(),
+      maxIterations
+    });
+
+    loop.on('agent_start', (e) => broadcast('agent_start', e));
+    loop.on('agent_thought', (e) => broadcast('agent_thought', e));
+    loop.on('agent_tool_call', (e) => broadcast('agent_tool_call', e));
+    loop.on('agent_tool_result', (e) => broadcast('agent_tool_result', e));
+    loop.on('agent_complete', (e) => broadcast('agent_complete', e));
+    loop.on('agent_error', (e) => broadcast('agent_error', e));
+
+    const taskId = `agent_${Date.now()}`;
+    // Run asynchronously
+    loop.run({ prompt, taskId, maxIterations }).catch(() => {});
+    return res.status(202).json({ taskId, status: 'running' });
+  });
+
+  router.get('/agent/:id', (req, res) => {
+    if (!options.taskStore) {
+      return res.status(501).json({ error: 'TaskStore not configured' });
+    }
+    const task = options.taskStore.getTask(req.params.id);
+    if (!task) return res.status(404).json({ error: 'Task not found' });
+    const checkpoints = options.taskStore.listCheckpoints(req.params.id, 20);
+    return res.status(200).json({ task, checkpoints });
   });
 
   router.get('/events', (req, res) => {

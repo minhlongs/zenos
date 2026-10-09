@@ -41,6 +41,10 @@ ZenOS is an audit-first, local-first personal AI workstation engineered for Appl
 │  Gate 8 Sandboxing & Supervisor (proxy/src/workflow/):      │
 │  - process-jail.js: Detached PGID process tree isolation    │
 │  - agent-supervisor.js: Heartbeat & SQLite crash recovery   │
+│                                                             │
+│  Gate 9 Autonomous ReAct Loop (proxy/src/workflow/):        │
+│  - tool-harness.js: Native 5-tool developer suite           │
+│  - react-agent-loop.js: Multi-turn Reason+Act engine        │
 └──────────────────────────────┬──────────────────────────────┘
                                │
                                ▼ Local Loopback (Port 1234)
