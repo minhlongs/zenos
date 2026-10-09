@@ -1,7 +1,7 @@
-# Product Development Requirements (PDR) — ZenOS Gate 6
+# Product Development Requirements (PDR) — ZenOS Gate 11
 
 ## Project Mission
-Build an audit-first, local-first personal AI workstation engineered for Apple Silicon and solo founder workflows, delivering the AI Factory engine (`/zen`, `/cook`, `/goal`).
+Build an audit-first, local-first personal AI workstation engineered for Apple Silicon and solo founder workflows, delivering the AI Factory engine (`/zen`, `/cook`, `/goal`), autonomous ReAct loops, evaluation suites, and multi-agent swarm orchestration.
 
 ## Target User
 Solo software founders and technical architects operating on macOS (M1/M2/M3/M4 Max with 64GB+ unified memory), running local LLMs alongside Claude Code.
@@ -10,7 +10,7 @@ Solo software founders and technical architects operating on macOS (M1/M2/M3/M4 
 
 ### FR-1: Cognitive Planning Engine (`/zen`)
 - Accept natural language problem statements and evaluate complexity (score 1-5).
-- Automatically route local vs cloud inference: score <= 3 to local LM Studio (e.g. Qwen 2.5 Coder 14B), score > 3 to cloud frontier models.
+- Automatically route local vs cloud inference: score <= 3 to local LM Studio, score > 3 to cloud frontier models.
 - Decompose requests into structured JSON plan specs with explicit test assertions and file mutation targets.
 
 ### FR-2: Deterministic TDD Execution Runner (`/cook`)
@@ -24,43 +24,39 @@ Solo software founders and technical architects operating on macOS (M1/M2/M3/M4 
 - Provide long-running goal execution across multi-phase plans.
 - Store transactional checkpoints in SQLite (`task_checkpoints`).
 - Support pause, resume, and abort without context loss across workstation restarts.
-- Integrate with Gate 4 `ApprovalGate` when high-risk commands are detected.
 
 ### FR-4: Factory REST & SSE APIs (`routes-factory.js`)
 - Expose `/v1/factory/zen`, `/v1/factory/cook`, `/v1/factory/goal` endpoints.
 - Broadcast real-time SSE stream on `/v1/factory/events`.
 
-### FR-5: Thin CLI Dispatchers
-- Provide `bin/zen`, `bin/cook`, `bin/goal` executable dispatchers (< 60 LOC each).
-
-### FR-6: Process Group Isolation (`ProcessJail`)
+### FR-5: Process Group Isolation (`ProcessJail`)
 - Detached child process spawning with unique Process Group IDs (PGID).
 - Recursive process tree kill escalation (`SIGTERM` followed by grace-period `SIGKILL` to `-pgid`).
-- Elimination of zombie/orphaned processes on Apple Silicon.
 
-### FR-7: Autonomous Agent Supervisor & Crash Recovery (`AgentSupervisor`)
+### FR-6: Autonomous Agent Supervisor (`AgentSupervisor`)
 - Background heartbeat daemon monitoring active agent tasks.
-- Dead-man switch triggering automated kill and failure state transition upon 30s heartbeat lapse.
-- SQLite boot reconciliation recovering dangling in-flight tasks and cleaning orphaned process trees.
-- Emergency `kill-all` control endpoint and dark-mode Supervisor UI monitor.
+- Dead-man switch triggering automated kill upon 30s heartbeat lapse.
+- SQLite boot reconciliation recovering dangling in-flight tasks.
 
-### FR-8: Autonomous ReAct Agent Loop & Local Tool Harness (`ReactAgentLoop` & `ToolHarness`)
+### FR-7: Autonomous ReAct Agent Loop & Local Tool Harness (`ReactAgentLoop` & `ToolHarness`)
 - Zero-dependency local developer tool harness providing `read_file`, `write_file`, `edit_file`, `list_files`, and `execute_command`.
-- Workspace isolation via `PathGuard` and sandboxed command execution via `ProcessJail` and `CommandGuard`.
-- Autonomous multi-turn Reason+Act execution with XML `<tool_call>` parsing.
-- Metal GPU single-concurrency serialization via `ConcurrencyGate`.
-- Step-by-step state checkpointing into SQLite `TaskStore` with context compactor window sliding.
-- Live SSE telemetry streaming to the frontend `AgentConsole`.
+- Workspace isolation via `PathGuard` and sandboxed execution via `ProcessJail`.
 
-### FR-9: Automated Evaluation & Self-Correction Feedback Loops (`EvalRunner` & `ReflexionLoop`)
+### FR-8: Automated Evaluation & Self-Correction Feedback Loops (`EvalRunner` & `ReflexionLoop`)
 - Deterministic SWE micro-benchmarks with isolated test workspaces (`EvalBenchmarkSuite`).
-- Context-efficient mini-stack extractor isolating failure lines and 4-line code context (`DiagnosticExtractor`).
-- Multi-turn Reflexion (Critique-Revision) self-repair loop applying surgical patches upon test failures.
-- Durable relational SQLite scoring (`EvalStore` storing `eval_runs` and `eval_cases` for Pass@1, recovery rate, and latency metrics).
-- Subprocess environment isolation clearing `NODE_TEST_CONTEXT` in `ProcessJail`.
-- Live Next.js operator console with real-time Pass@1, recovery rate metrics, and streaming case diagnostics (`EvalConsole`).
+- Diagnostic mini-stack extractor isolating failure lines and 4-line context (`DiagnosticExtractor`).
+- Multi-turn Reflexion (Critique-Revision) self-repair loop applying surgical patches.
+- Durable relational SQLite scoring (`EvalStore` storing `eval_runs` and `eval_cases`).
+
+### FR-9: Multi-Agent Swarm Orchestration & Dual-Key Consensus (`SwarmOrchestrator` & `ConsensusGate`)
+- Turn-Based Blackboard State Machine in SQLite (`SwarmBlackboard`) managing atomic artifact handoffs.
+- Hierarchical 4-Role specialization: Architect, Coder, Auditor, QA Verifier (`SwarmRoles`).
+- Dual-Key Consensus Gating (`ConsensusGate`): Code merge requires both deterministic test pass (Key 1) and adversarial auditor approval (Key 2).
+- Metal GPU single-concurrency serialization avoiding unified memory context thrashing.
+- Real-time Next.js operator portal displaying role pipeline and dual-key locks (`SwarmConsole`).
 
 ## Non-Functional Requirements
-- Zero external proxy dependencies.
+- Zero external proxy dependencies (pure native Node.js).
 - 100% green test pass rate.
+- < 200 LOC per file across all source and test modules.
 - Sub-10ms proxy overhead for routing and checkpointing.

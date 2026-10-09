@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+  <meta charset="UTF-8">
+  <title>ZenOS Swarm Console Wireframe</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-slate-950 text-slate-100 p-8 font-sans antialiased">
+  <div class="max-w-5xl mx-auto space-y-6">
+    <div class="flex items-center justify-between border-b border-slate-800 pb-4">
+      <div>
+        <h1 class="text-xl font-bold tracking-tight text-slate-100 flex items-center gap-2">
+          <span class="w-2.5 h-2.5 rounded-full bg-indigo-500 animate-pulse"></span>
+          Hierarchical Multi-Agent Swarm Orchestrator
+        </h1>
+        <p class="text-xs text-slate-400 mt-1">Turn-Based Blackboard State Machine & Dual-Key Consensus Gate</p>
+      </div>
+      <div class="flex items-center gap-2">
+        <span class="px-2.5 py-1 rounded-full text-xs font-mono bg-indigo-950 text-indigo-400 border border-indigo-800">
+          Turn: AUDITING (Round 1/3)
+        </span>
+      </div>
+    </div>
+
+    <!-- 4-Role Pipeline Track -->
+    <div class="grid grid-cols-4 gap-3">
+      <div class="p-3 bg-slate-900 border border-emerald-800 rounded-lg">
+        <div class="flex items-center justify-between text-xs font-semibold text-emerald-400">
+          <span>1. ARCHITECT</span>
+          <span>✓ SPEC</span>
+        </div>
+        <p class="text-[11px] text-slate-400 mt-1">Acceptance criteria & targets defined</p>
+      </div>
+      <div class="p-3 bg-slate-900 border border-emerald-800 rounded-lg">
+        <div class="flex items-center justify-between text-xs font-semibold text-emerald-400">
+          <span>2. CODER</span>
+          <span>✓ DIFF</span>
+        </div>
+        <p class="text-[11px] text-slate-400 mt-1">Implemented < 200 LOC patch</p>
+      </div>
+      <div class="p-3 bg-slate-900 border border-emerald-800 rounded-lg">
+        <div class="flex items-center justify-between text-xs font-semibold text-emerald-400">
+          <span>3. QA VERIFIER</span>
+          <span>✓ PASS</span>
+        </div>
+        <p class="text-[11px] text-slate-400 mt-1">Tests 100% green in ProcessJail</p>
+      </div>
+      <div class="p-3 bg-slate-900 border border-indigo-600 rounded-lg ring-1 ring-indigo-500">
+        <div class="flex items-center justify-between text-xs font-semibold text-indigo-300">
+          <span>4. AUDITOR</span>
+          <span class="animate-pulse">● REVIEWING</span>
+        </div>
+        <p class="text-[11px] text-slate-400 mt-1">Checking invariants & security</p>
+      </div>
+    </div>
+
+    <!-- Dual-Key Consensus Card -->
+    <div class="p-4 bg-slate-900 border border-slate-800 rounded-lg grid grid-cols-2 gap-4">
+      <div class="p-3 bg-slate-950 border border-emerald-800/60 rounded-md flex items-center justify-between">
+        <div>
+          <span class="text-xs font-semibold text-slate-300 block">Key 1: Deterministic Test Witness</span>
+          <span class="text-[11px] text-emerald-400 font-mono">ProcessJail Exit Code 0 (5/5 Assertions)</span>
+        </div>
+        <span class="px-2 py-0.5 rounded text-[10px] font-bold bg-emerald-950 text-emerald-400 border border-emerald-800">LOCKED</span>
+      </div>
+      <div class="p-3 bg-slate-950 border border-amber-800/60 rounded-md flex items-center justify-between">
+        <div>
+          <span class="text-xs font-semibold text-slate-300 block">Key 2: Adversarial Audit Witness</span>
+          <span class="text-[11px] text-amber-400 font-mono">Analyzing LOC & Invariants...</span>
+        </div>
+        <span class="px-2 py-0.5 rounded text-[10px] font-bold bg-amber-950 text-amber-400 border border-amber-800">PENDING</span>
+      </div>
+    </div>
+
+    <!-- Blackboard Artifact Viewer -->
+    <div class="p-4 bg-slate-900 border border-slate-800 rounded-lg space-y-3">
+      <div class="flex items-center justify-between text-xs border-b border-slate-800 pb-2">
+        <span class="font-semibold text-slate-200">Blackboard Ledger Artifacts</span>
+        <div class="flex gap-2">
+          <button class="px-2 py-1 bg-slate-800 text-slate-300 rounded hover:bg-slate-700">SPEC</button>
+          <button class="px-2 py-1 bg-slate-800 text-slate-300 rounded hover:bg-slate-700">DIFF</button>
+          <button class="px-2 py-1 bg-slate-800 text-slate-300 rounded hover:bg-slate-700">TESTS</button>
+          <button class="px-2 py-1 bg-indigo-600 text-white rounded">AUDIT</button>
+        </div>
+      </div>
+      <pre class="p-3 bg-slate-950 rounded border border-slate-800 font-mono text-[11px] text-slate-300 overflow-x-auto">
+{
+  "role": "AUDITOR",
+  "artifact_type": "AUDIT_REPORT",
+  "invariants_verified": ["<200 LOC per file", "0 external npm dependencies"],
+  "security_status": "CLEAN",
+  "recommendation": "SIGN_APPROVAL"
+}</pre>
+    </div>
+  </div>
+</body>
+</html>
