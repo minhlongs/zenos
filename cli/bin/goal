@@ -1,0 +1,73 @@
+#!/usr/bin/env node
+'use strict';
+
+const http = require('node:http');
+
+const port = process.env.ZENOS_PORT || 4000;
+const host = process.env.ZENOS_HOST || '127.0.0.1';
+
+const [command, goalId, ...rest] = process.argv.slice(2);
+
+if (!command || !goalId || command === '--help' || command === '-h') {
+  process.stdout.write('Usage: goal <start|status|pause|resume|abort> <goalId> [args]\n');
+  process.exit(0);
+}
+
+function sendRequest(path, method = 'GET', body = null) {
+  const payload = body ? JSON.stringify(body) : null;
+  const headers = {};
+  if (payload) {
+    headers['Content-Type'] = 'application/json';
+    headers['Content-Length'] = Buffer.byteLength(payload);
+  }
+
+  const req = http.request(
+    { hostname: host, port, path, method, headers },
+    (res) => {
+      let data = '';
+      res.on('data', (chunk) => { data += chunk; });
+      res.on('end', () => {
+        try {
+          const json = JSON.parse(data);
+          process.stdout.write(JSON.stringify(json, null, 2) + '\n');
+        } catch {
+          process.stdout.write(data + '\n');
+        }
+        process.exit(res.statusCode >= 400 ? 1 : 0);
+      });
+    }
+  );
+
+  req.on('error', (err) => {
+    process.stderr.write(`Error: ${err.message}\n`);
+    process.exit(1);
+  });
+
+  if (payload) req.write(payload);
+  req.end();
+}
+
+switch (command) {
+  case 'start':
+    sendRequest('/v1/factory/goal', 'POST', { goalId, title: rest.join(' ') || goalId });
+    break;
+  case 'status':
+    sendRequest(`/v1/factory/goal/${encodeURIComponent(goalId)}`, 'GET');
+    break;
+  case 'pause':
+    sendRequest(`/v1/factory/goal/${encodeURIComponent(goalId)}/pause`, 'POST', {
+      reason: rest.join(' ') || 'manual pause'
+    });
+    break;
+  case 'resume':
+    sendRequest(`/v1/factory/goal/${encodeURIComponent(goalId)}/resume`, 'POST');
+    break;
+  case 'abort':
+    sendRequest(`/v1/factory/goal/${encodeURIComponent(goalId)}/abort`, 'POST', {
+      reason: rest.join(' ') || 'manual abort'
+    });
+    break;
+  default:
+    process.stderr.write(`Unknown command: ${command}\n`);
+    process.exit(1);
+}

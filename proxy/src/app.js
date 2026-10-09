@@ -24,6 +24,7 @@ const { TelemetryCollector } = require('./telemetry');
 const { createTelemetryRouter, createTelemetryMiddleware } = require('./routes-telemetry');
 const { createDashboardRouter } = require('./routes-dashboard');
 const { createAnthropicRouter } = require('./routes-anthropic');
+const { createFactoryRouter } = require('./workflow/routes-factory');
 
 function createApp(options = {}) {
   const app = express();
@@ -74,6 +75,7 @@ function createApp(options = {}) {
   app.use('/v1', createMemoryRouter({ taskStore, markdownDir }));
   app.use('/v1', createSecurityRouter({ approvalGate, allowedRoots: options.allowedRoots }));
   app.use('/v1', createTelemetryRouter({ telemetry }));
+  app.use('/v1/factory', createFactoryRouter({ taskStore }));
   app.use('/dashboard', createDashboardRouter({ telemetry, approvalGate }));
 
   // GET /health

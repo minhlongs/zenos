@@ -66,6 +66,23 @@ function initDatabase(options = {}) {
       .run(new Date().toISOString());
   }
 
+  const migration2 = db.prepare('SELECT version FROM schema_migrations WHERE version = 2').get();
+  if (!migration2) {
+    db.exec(`
+      CREATE TABLE IF NOT EXISTS task_checkpoints (
+        id TEXT PRIMARY KEY,
+        task_id TEXT NOT NULL,
+        phase TEXT NOT NULL,
+        state TEXT NOT NULL,
+        artifacts TEXT,
+        created_at TEXT NOT NULL,
+        FOREIGN KEY (task_id) REFERENCES tasks(id) ON DELETE CASCADE
+      );
+    `);
+    db.prepare('INSERT INTO schema_migrations (version, applied_at) VALUES (2, ?)')
+      .run(new Date().toISOString());
+  }
+
   return db;
 }
 

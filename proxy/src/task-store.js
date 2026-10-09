@@ -81,6 +81,51 @@ class TaskStore {
     ).run(now);
     return result.changes;
   }
+
+  saveCheckpoint({ id, taskId, phase, state, artifacts = null }) {
+    if (!taskId || !phase || !state) {
+      throw new Error('taskId, phase, and state are required to save checkpoint');
+    }
+    const checkpointId = id || `chk_${crypto.randomUUID()}`;
+    const now = new Date().toISOString();
+    const artifactsStr = artifacts ? (typeof artifacts === 'string' ? artifacts : JSON.stringify(artifacts)) : null;
+
+    this.db.prepare(
+      'INSERT INTO task_checkpoints (id, task_id, phase, state, artifacts, created_at) VALUES (?, ?, ?, ?, ?, ?)'
+    ).run(checkpointId, taskId, phase, state, artifactsStr, now);
+
+    return this.getCheckpoint(checkpointId);
+  }
+
+  getCheckpoint(id) {
+    const row = this.db.prepare('SELECT * FROM task_checkpoints WHERE id = ?').get(id);
+    if (!row) return null;
+    return {
+      ...row,
+      artifacts: row.artifacts ? JSON.parse(row.artifacts) : null
+    };
+  }
+
+  getLatestCheckpoint(taskId) {
+    const row = this.db.prepare(
+      'SELECT * FROM task_checkpoints WHERE task_id = ? ORDER BY created_at DESC, rowid DESC LIMIT 1'
+    ).get(taskId);
+    if (!row) return null;
+    return {
+      ...row,
+      artifacts: row.artifacts ? JSON.parse(row.artifacts) : null
+    };
+  }
+
+  listCheckpoints(taskId, limit = 50) {
+    const rows = this.db.prepare(
+      'SELECT * FROM task_checkpoints WHERE task_id = ? ORDER BY created_at DESC, rowid DESC LIMIT ?'
+    ).all(taskId, limit);
+    return rows.map(r => ({
+      ...r,
+      artifacts: r.artifacts ? JSON.parse(r.artifacts) : null
+    }));
+  }
 }
 
 module.exports = { TaskStore, VALID_STATUSES };

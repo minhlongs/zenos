@@ -1,0 +1,61 @@
+#!/usr/bin/env node
+'use strict';
+
+const http = require('node:http');
+
+const port = process.env.ZENOS_PORT || 4000;
+const host = process.env.ZENOS_HOST || '127.0.0.1';
+
+const args = process.argv.slice(2);
+if (args.length === 0 || args.includes('--help') || args.includes('-h')) {
+  process.stdout.write('Usage: zen <prompt> [--hint <fileHint>]\n');
+  process.exit(0);
+}
+
+let prompt = '';
+let fileHint = null;
+
+for (let i = 0; i < args.length; i++) {
+  if (args[i] === '--hint' && i + 1 < args.length) {
+    fileHint = args[++i];
+  } else {
+    prompt += (prompt ? ' ' : '') + args[i];
+  }
+}
+
+const payload = JSON.stringify({ prompt, fileHint });
+
+const req = http.request(
+  {
+    hostname: host,
+    port,
+    path: '/v1/factory/zen',
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'Content-Length': Buffer.byteLength(payload)
+    }
+  },
+  (res) => {
+    let body = '';
+    res.on('data', (chunk) => { body += chunk; });
+    res.on('end', () => {
+      try {
+        const json = JSON.parse(body);
+        process.stdout.write(JSON.stringify(json, null, 2) + '\n');
+        process.exit(res.statusCode >= 400 ? 1 : 0);
+      } catch {
+        process.stdout.write(body + '\n');
+        process.exit(res.statusCode >= 400 ? 1 : 0);
+      }
+    });
+  }
+);
+
+req.on('error', (err) => {
+  process.stderr.write(`Error connecting to ZenOS Proxy: ${err.message}\n`);
+  process.exit(1);
+});
+
+req.write(payload);
+req.end();
