@@ -3,6 +3,7 @@
 const express = require('express');
 const cors = require('cors');
 const helmet = require('helmet');
+const path = require('node:path');
 const {
   BODY_LIMIT,
   LMSTUDIO_URL,
@@ -21,6 +22,9 @@ const { handleStreamingResponse } = require('./streaming');
 const { resolveModel, validateCapabilities } = require('./router');
 const { ConcurrencyGate } = require('./queue');
 const { executeWithFailover } = require('./failover');
+const { initDatabase } = require('./db');
+const { TaskStore } = require('./task-store');
+const { createMemoryRouter } = require('./routes-memory');
 
 function createApp(options = {}) {
   const app = express();
@@ -33,6 +37,15 @@ function createApp(options = {}) {
     maxQueueDepth: options.maxQueueDepth ?? MAX_QUEUE_DEPTH,
     queueTimeoutMs: options.queueTimeoutMs ?? QUEUE_TIMEOUT_MS
   });
+
+  const db = options.db || initDatabase({
+    memory: options.memoryDb !== undefined ? options.memoryDb : (!process.env.ZENOS_DB_PATH),
+    dbPath: options.dbPath || process.env.ZENOS_DB_PATH
+  });
+  const taskStore = options.taskStore || new TaskStore(db);
+  taskStore.recoverDanglingTasks();
+
+  const markdownDir = options.markdownDir || process.env.ZENOS_MARKDOWN_DIR || path.join(__dirname, '../../memory/markdown');
 
   app.disable('x-powered-by');
   app.use(helmet({ contentSecurityPolicy: false }));
@@ -47,6 +60,9 @@ function createApp(options = {}) {
   app.use(dnsRebindingGuard);
   app.use(safeLogger);
   app.use(express.json({ limit: options.bodyLimit || BODY_LIMIT }));
+
+  // Mount memory, tasks, and session routes
+  app.use('/v1', createMemoryRouter({ taskStore, markdownDir }));
 
   // GET /health
   app.get('/health', (req, res) => {
