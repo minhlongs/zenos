@@ -48,7 +48,10 @@ function getDashboardHtml() {
 <body>
   <div class="header">
     <h1>ZenOS Operational Dashboard</h1>
-    <div><span class="badge" id="conn-status">SSE Connected</span></div>
+    <div>
+      <span class="badge" style="background:#0f2b1d;color:#34d399;margin-right:6px;">Metal: Safe (1)</span>
+      <span class="badge" id="conn-status">SSE Connected</span>
+    </div>
   </div>
 
   <div class="grid">

@@ -1,4 +1,5 @@
 import { TelemetrySummary, ApprovalRecord, TelemetryEvent } from '../types/zenos';
+import { ZenPlan, CookCycleResult, GoalStatus } from '../types/factory';
 
 const BASE_URL = process.env.NEXT_PUBLIC_ZENOS_URL || 'http://127.0.0.1:4000';
 
@@ -44,5 +45,72 @@ export async function resolveApprovalRequest(
     return { success: true };
   } catch (err) {
     return { success: false, error: err instanceof Error ? err.message : 'Network error' };
+  }
+}
+
+export async function triggerZen(goal: string): Promise<ZenPlan | null> {
+  try {
+    const res = await fetch(`${BASE_URL}/v1/factory/zen`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ goal })
+    });
+    if (!res.ok) return null;
+    const data = await res.json() as { success: boolean; plan: ZenPlan };
+    return data.plan;
+  } catch {
+    return null;
+  }
+}
+
+export async function runCook(testCommand?: string, targetFiles?: string[]): Promise<CookCycleResult | null> {
+  try {
+    const res = await fetch(`${BASE_URL}/v1/factory/cook`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ testCommand, targetFiles })
+    });
+    if (!res.ok) return null;
+    const data = await res.json() as { success: boolean; result: CookCycleResult };
+    return data.result;
+  } catch {
+    return null;
+  }
+}
+
+export async function startGoal(prompt: string): Promise<GoalStatus | null> {
+  try {
+    const res = await fetch(`${BASE_URL}/v1/factory/goal`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ prompt })
+    });
+    if (!res.ok) return null;
+    const data = await res.json() as { success: boolean; goal: GoalStatus };
+    return data.goal;
+  } catch {
+    return null;
+  }
+}
+
+export async function getGoal(id: string): Promise<GoalStatus | null> {
+  try {
+    const res = await fetch(`${BASE_URL}/v1/factory/goal/${encodeURIComponent(id)}`, { cache: 'no-store' });
+    if (!res.ok) return null;
+    const data = await res.json() as { success: boolean; goal: GoalStatus };
+    return data.goal;
+  } catch {
+    return null;
+  }
+}
+
+export async function updateGoalAction(id: string, action: 'pause' | 'resume' | 'abort'): Promise<boolean> {
+  try {
+    const res = await fetch(`${BASE_URL}/v1/factory/goal/${encodeURIComponent(id)}/${action}`, {
+      method: 'POST'
+    });
+    return res.ok;
+  } catch {
+    return false;
   }
 }
