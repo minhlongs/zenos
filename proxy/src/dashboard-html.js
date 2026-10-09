@@ -51,10 +51,15 @@ function getDashboardHtml() {
     <div>
       <span class="badge" style="background:#0f2b1d;color:#34d399;margin-right:6px;">Metal: Safe (1)</span>
       <span class="badge" id="conn-status">SSE Connected</span>
+      <button class="btn btn-reject" onclick="killAllJails()" title="Emergency kill detached process groups">Kill All Jails</button>
     </div>
   </div>
 
   <div class="grid">
+    <div class="card">
+      <div class="card-title">Supervisor Jails</div>
+      <div class="card-val" id="active-jails" style="color:var(--accent);">0 PGID</div>
+    </div>
     <div class="card">
       <div class="card-title">Total Requests</div>
       <div class="card-val" id="total-req">0</div>
@@ -146,12 +151,28 @@ function getDashboardHtml() {
       document.getElementById('error-rate').textContent = \`\${Math.round((summary.errorRate || 0) * 1000) / 10}%\`;
     }
 
+    async function killAllJails() {
+      await fetch('/v1/factory/supervisor/kill-all', { method: 'POST' });
+      loadSupervisor();
+    }
+
+    async function loadSupervisor() {
+      try {
+        const res = await fetch('/v1/factory/supervisor/status');
+        if (!res.ok) return;
+        const d = await res.json();
+        const jails = d.supervisor?.activeJails?.length || 0;
+        document.getElementById('active-jails').textContent = \`\${jails} PGID\`;
+      } catch (e) {}
+    }
+
     const evtSource = new EventSource('/v1/telemetry/events');
     evtSource.addEventListener('init', (e) => {
       const data = JSON.parse(e.data);
       updateMetrics(data.summary);
       logEvent('Connected to Telemetry SSE stream');
       loadApprovals();
+      loadSupervisor();
     });
     evtSource.addEventListener('telemetry', (e) => {
       const evt = JSON.parse(e.data);
@@ -159,6 +180,7 @@ function getDashboardHtml() {
       fetch('/v1/telemetry').then(r => r.json()).then(updateMetrics);
     });
     setInterval(loadApprovals, 5000);
+    setInterval(loadSupervisor, 5000);
   </script>
 </body>
 </html>`;

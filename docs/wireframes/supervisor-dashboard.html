@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ZenOS Gate 8 - Supervisor & Process Jail</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-slate-950 text-slate-100 font-sans p-6 min-h-screen">
+  <div class="max-w-6xl mx-auto space-y-6">
+    <!-- Header -->
+    <header class="flex justify-between items-center border-b border-slate-800 pb-4">
+      <div>
+        <h1 class="text-2xl font-bold tracking-tight text-white flex items-center gap-2">
+          <span>🛡️ ZenOS Supervisor & Process Jail</span>
+          <span class="text-xs bg-emerald-950 text-emerald-400 border border-emerald-800 px-2.5 py-0.5 rounded-full font-mono">GATE 8</span>
+        </h1>
+        <p class="text-sm text-slate-400 mt-1">Autonomous Agent Watchdog, Tree Signal Governance & SQLite Crash Reconciler</p>
+      </div>
+      <div class="flex items-center gap-3">
+        <span class="flex items-center gap-1.5 text-xs bg-slate-900 border border-slate-800 px-3 py-1.5 rounded-md text-slate-300">
+          <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+          Daemon Active (5s Heartbeat)
+        </span>
+        <button class="bg-red-950 hover:bg-red-900 text-red-300 border border-red-800 text-xs px-3 py-1.5 rounded-md font-semibold">
+          Emergency Kill PGID
+        </button>
+      </div>
+    </header>
+
+    <!-- Top Grid: Live Process Trees & Crash Recovery Status -->
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+      <!-- Card 1: Active Process Jails -->
+      <div class="bg-slate-900 border border-slate-800 rounded-lg p-5">
+        <h2 class="text-sm font-semibold text-slate-200 mb-3 flex items-center justify-between">
+          <span>Active Process Groups (PGID)</span>
+          <span class="text-xs font-mono bg-sky-950 text-sky-400 border border-sky-800 px-2 py-0.5 rounded">1 Active</span>
+        </h2>
+        <div class="space-y-3 font-mono text-xs">
+          <div class="p-3 bg-slate-950 border border-slate-800 rounded">
+            <div class="flex justify-between text-slate-400 mb-1">
+              <span>PGID: 84920</span>
+              <span class="text-emerald-400">RUNNING (12s)</span>
+            </div>
+            <div class="text-slate-200">CMD: node --test proxy/tests/</div>
+            <div class="text-slate-500 text-[10px] mt-1">Dead-man Timer: 30s | Isolated Tree: 3 pids</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Card 2: SQLite Crash Recovery -->
+      <div class="bg-slate-900 border border-slate-800 rounded-lg p-5">
+        <h2 class="text-sm font-semibold text-slate-200 mb-3 flex items-center justify-between">
+          <span>Crash Recovery Reconciler</span>
+          <span class="text-xs font-mono bg-emerald-950 text-emerald-400 border border-emerald-800 px-2 py-0.5 rounded">SYNCHRONIZED</span>
+        </h2>
+        <div class="space-y-2 text-xs">
+          <div class="flex justify-between py-1 border-b border-slate-800 text-slate-400">
+            <span>Last Boot Reconciled:</span>
+            <span class="font-mono text-slate-200">2026-10-09 23:20:00</span>
+          </div>
+          <div class="flex justify-between py-1 border-b border-slate-800 text-slate-400">
+            <span>Interrupted Tasks Cleared:</span>
+            <span class="font-mono text-slate-200">0</span>
+          </div>
+          <div class="flex justify-between py-1 text-slate-400">
+            <span>SQLite WAL Mode:</span>
+            <span class="text-emerald-400 font-semibold">Enabled</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Card 3: Metal GPU Admission Guard -->
+      <div class="bg-slate-900 border border-slate-800 rounded-lg p-5">
+        <h2 class="text-sm font-semibold text-slate-200 mb-3 flex items-center justify-between">
+          <span>Apple Silicon Metal Gate</span>
+          <span class="text-xs font-mono bg-violet-950 text-violet-400 border border-violet-800 px-2 py-0.5 rounded">CONCURRENCY: 1</span>
+        </h2>
+        <div class="space-y-2 text-xs">
+          <div class="flex justify-between py-1 border-b border-slate-800 text-slate-400">
+            <span>In-flight Inference:</span>
+            <span class="font-mono text-slate-200">0</span>
+          </div>
+          <div class="flex justify-between py-1 border-b border-slate-800 text-slate-400">
+            <span>Queued Tasks:</span>
+            <span class="font-mono text-slate-200">0</span>
+          </div>
+          <div class="flex justify-between py-1 text-slate-400">
+            <span>Thermal Throttling:</span>
+            <span class="text-emerald-400">Nominal</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Supervisor Activity & Signal Log -->
+    <div class="bg-slate-900 border border-slate-800 rounded-lg p-5">
+      <div class="flex justify-between items-center mb-3">
+        <h2 class="text-sm font-semibold text-slate-200">Supervisor Audit & Signal Log</h2>
+        <span class="text-xs text-slate-500 font-mono">Stream: /v1/factory/events</span>
+      </div>
+      <div class="bg-slate-950 border border-slate-800 rounded p-4 font-mono text-xs text-slate-300 space-y-1 h-48 overflow-y-auto">
+        <div class="text-slate-500">[2026-10-09 23:25:01] Supervisor initialized with dead-man timeout 30s.</div>
+        <div class="text-slate-400">[2026-10-09 23:25:01] Startup audit: scanned 4 active task checkpoints. 0 orphaned.</div>
+        <div class="text-slate-400">[2026-10-09 23:25:06] Heartbeat pulse emitted to SQLite task_checkpoints.</div>
+        <div class="text-sky-400">[2026-10-09 23:25:10] ProcessJail: Spawning isolated PGID 84920 (cmd: node --test).</div>
+        <div class="text-slate-400">[2026-10-09 23:25:11] ProcessJail: PGID 84920 healthy. Memory: 42MB.</div>
+      </div>
+    </div>
+  </div>
+</body>
+</html>

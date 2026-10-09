@@ -33,6 +33,17 @@ Solo software founders and technical architects operating on macOS (M1/M2/M3/M4 
 ### FR-5: Thin CLI Dispatchers
 - Provide `bin/zen`, `bin/cook`, `bin/goal` executable dispatchers (< 60 LOC each).
 
+### FR-6: Process Group Isolation (`ProcessJail`)
+- Detached child process spawning with unique Process Group IDs (PGID).
+- Recursive process tree kill escalation (`SIGTERM` followed by grace-period `SIGKILL` to `-pgid`).
+- Elimination of zombie/orphaned processes on Apple Silicon.
+
+### FR-7: Autonomous Agent Supervisor & Crash Recovery (`AgentSupervisor`)
+- Background heartbeat daemon monitoring active agent tasks.
+- Dead-man switch triggering automated kill and failure state transition upon 30s heartbeat lapse.
+- SQLite boot reconciliation recovering dangling in-flight tasks and cleaning orphaned process trees.
+- Emergency `kill-all` control endpoint and dark-mode Supervisor UI monitor.
+
 ## Non-Functional Requirements
 - Zero external proxy dependencies.
 - 100% green test pass rate.

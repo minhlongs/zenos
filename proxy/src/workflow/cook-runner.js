@@ -3,6 +3,7 @@
 const fs = require('node:fs');
 const { spawnSync } = require('node:child_process');
 const { validateFile } = require('./loc-guard');
+const { ProcessJail } = require('./process-jail');
 
 const DEFAULT_MAX_ITERATIONS = 5;
 
@@ -41,18 +42,13 @@ class CookRunner {
   validateTouchedFiles(filePaths = []) {
     const violations = [];
     for (const filePath of filePaths) {
-      if (!fs.existsSync(filePath)) {
-        continue;
-      }
+      if (!fs.existsSync(filePath)) continue;
       const check = validateFile(filePath);
       if (!check.valid) {
         violations.push({ filePath, lines: check.lines, error: check.error });
       }
     }
-    return {
-      valid: violations.length === 0,
-      violations
-    };
+    return { valid: violations.length === 0, violations };
   }
 
   runCycle({
@@ -68,43 +64,23 @@ class CookRunner {
     while (iteration < this.maxIterations) {
       iteration++;
 
-      // If callback provided, allow simulating code modifications per iteration
       if (typeof iterationCallback === 'function') {
         try {
           iterationCallback(iteration);
         } catch (cbErr) {
-          return {
-            success: false,
-            iterations: iteration,
-            state: 'CALLBACK_ERROR',
-            error: cbErr.message,
-            history
-          };
+          return { success: false, iterations: iteration, state: 'CALLBACK_ERROR', error: cbErr.message, history };
         }
       }
 
-      // Check LOC invariant on all targetFiles
       if (targetFiles.length > 0) {
         const locCheck = this.validateTouchedFiles(targetFiles);
         if (!locCheck.valid) {
           const violationMsg = locCheck.violations.map(v => v.error).join('; ');
-          history.push({
-            iteration,
-            stage: 'LOC_CHECK',
-            exitCode: 1,
-            error: violationMsg
-          });
-          return {
-            success: false,
-            iterations: iteration,
-            state: 'LOC_LIMIT_EXCEEDED',
-            error: `Target files violate < 200 LOC rule: ${violationMsg}`,
-            history
-          };
+          history.push({ iteration, stage: 'LOC_CHECK', exitCode: 1, error: violationMsg });
+          return { success: false, iterations: iteration, state: 'LOC_LIMIT_EXCEEDED', error: `Target files violate < 200 LOC rule: ${violationMsg}`, history };
         }
       }
 
-      // Execute tests
       const result = this.runnerFn(testCommand, testArgs, cwd);
       history.push({
         iteration,
@@ -116,16 +92,57 @@ class CookRunner {
       });
 
       if (result.exitCode === 0) {
-        return {
-          success: true,
-          iterations: iteration,
-          state: 'PASSED',
-          history
-        };
+        return { success: true, iterations: iteration, state: 'PASSED', history };
       }
     }
 
-    // Circuit breaker tripped
+    return {
+      success: false,
+      iterations: iteration,
+      state: 'CIRCUIT_BREAKER_TRIGGERED',
+      error: `Circuit breaker tripped after ${this.maxIterations} consecutive test failures`,
+      history
+    };
+  }
+
+  async runCycleAsync({
+    testCommand = this.defaultTestCommand,
+    testArgs = [],
+    targetFiles = [],
+    cwd = process.cwd(),
+    timeoutMs = 30000
+  } = {}) {
+    let iteration = 0;
+    const history = [];
+
+    while (iteration < this.maxIterations) {
+      iteration++;
+      if (targetFiles.length > 0) {
+        const locCheck = this.validateTouchedFiles(targetFiles);
+        if (!locCheck.valid) {
+          const violationMsg = locCheck.violations.map(v => v.error).join('; ');
+          history.push({ iteration, stage: 'LOC_CHECK', exitCode: 1, error: violationMsg });
+          return { success: false, iterations: iteration, state: 'LOC_LIMIT_EXCEEDED', error: violationMsg, history };
+        }
+      }
+
+      const jail = new ProcessJail({ defaultTimeoutMs: timeoutMs });
+      const result = await jail.run(testCommand, testArgs, { cwd, timeoutMs });
+      history.push({
+        iteration,
+        stage: 'TEST_RUN',
+        exitCode: result.exitCode,
+        stdout: result.stdout,
+        stderr: result.stderr,
+        durationMs: result.durationMs,
+        timedOut: result.timedOut
+      });
+
+      if (result.exitCode === 0) {
+        return { success: true, iterations: iteration, state: 'PASSED', history };
+      }
+    }
+
     return {
       success: false,
       iterations: iteration,

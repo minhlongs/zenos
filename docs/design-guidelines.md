@@ -1,4 +1,4 @@
-# ZenOS Design Guidelines & UI Standards
+# ZenOS Design Guidelines & UI Standards (Gate 8)
 
 ## 1. Visual Theme & Philosophy
 - **Aesthetic**: Modern Cyber-Minimalist Dark Mode engineered for developer focus.
@@ -12,7 +12,7 @@
   - Frontier Cloud Route / Complexity: `#8b5cf6` (violet-500) & `#2e1065` (violet-950)
   - Warning / LOC Threshold: `#f59e0b` (amber-500) & `#451a03` (amber-950)
   - Danger / Circuit Breaker / Rejected: `#ef4444` (red-500) & `#450a0a` (red-950)
-  - Interactive Accent / Blue: `#38bdf8` (sky-400) & `#0369a1` (sky-700)
+  - Process Jail / PGID Monitor: `#38bdf8` (sky-400) & `#0369a1` (sky-700)
 
 ## 2. Typography & Hierarchy
 - **Primary Font**: `Inter`, system-ui, -apple-system, sans-serif
@@ -26,6 +26,8 @@
 ## 3. Component Design System
 - **Cards**: `bg-slate-900 border border-slate-800 rounded-lg p-5 shadow-sm`
 - **Pills / Badges**: `px-2.5 py-0.5 rounded-full text-xs font-medium border`
+- **Process Group Monitor**: Monospace PID / PGID badge with live uptime meter and dead-man switch countdown.
+- **Crash Recovery Pill**: Status indicator showing `SYNCHRONIZED` (emerald) or `RECONCILING` (amber).
 - **Buttons**:
   - Primary: `bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-semibold px-3 py-1.5 rounded-md`
   - Secondary: `bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-semibold px-3 py-1.5 rounded-md border border-slate-700`

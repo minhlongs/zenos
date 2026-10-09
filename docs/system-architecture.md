@@ -1,4 +1,4 @@
-# ZenOS Architecture & Gate 6 AI Factory Specification
+# ZenOS Architecture & Gate 8 Process Isolation & Supervisor Specification
 
 ## High-Level System Architecture
 
@@ -25,9 +25,10 @@ ZenOS is an audit-first, local-first personal AI workstation engineered for Appl
 │  - path-guard.js & command-guard.js: Workspace jail         │
 │  - approval-gate.js: Human approval queue for high-risk     │
 │                                                             │
-│  Gate 5 Observability:                                      │
+│  Gate 5 Observability & Gate 7 Factory Portal:              │
 │  - telemetry.js: In-memory metrics & SSE streaming          │
 │  - dashboard-html.js: Zero-dependency embedded Web UI       │
+│  - tool-parser.js & context-compactor.js: Local harnesses   │
 │                                                             │
 │  Gate 6 Factory Automation Engine (proxy/src/workflow/):    │
 │  - zen-director.js: Cognitive architecture & planning       │
@@ -36,6 +37,10 @@ ZenOS is an audit-first, local-first personal AI workstation engineered for Appl
 │  - loc-guard.js: Enforces < 200 LOC per file invariant      │
 │  - factory-engine.js: Pipeline coordinator                  │
 │  - routes-factory.js: REST & SSE endpoints                  │
+│                                                             │
+│  Gate 8 Sandboxing & Supervisor (proxy/src/workflow/):      │
+│  - process-jail.js: Detached PGID process tree isolation    │
+│  - agent-supervisor.js: Heartbeat & SQLite crash recovery   │
 └──────────────────────────────┬──────────────────────────────┘
                                │
                                ▼ Local Loopback (Port 1234)
@@ -46,24 +51,22 @@ ZenOS is an audit-first, local-first personal AI workstation engineered for Appl
 └─────────────────────────────────────────────────────────────┘
 ```
 
-## Gate 6 AI Factory Tri-Service Design
+## Gate 8 Sandboxing & Supervisor Architecture
 
-1. **`/zen` (Cognitive Director)**:
-   - Evaluates complexity score (1-5).
-   - Routes between local models (score <= 3) and cloud frontier models (score > 3).
-   - Generates structured execution plans and TDD test assertions.
+1. **`process-jail.js` (Detached Process Tree Jail)**:
+   - Spawns tasks in distinct Process Groups (`detached: true`).
+   - Recursively cleans child process trees using `process.kill(-pgid, 'SIGTERM'/'SIGKILL')`.
+   - Protects Apple Silicon cores and RAM from runaway sub-processes or stuck build daemons.
+   - Enforces configurable CPU execution time limits (dead-man timer).
 
-2. **`/cook` (Deterministic TDD Runner)**:
-   - Executes Red -> Green -> Refactor cycle via `node:child_process`.
-   - Enforces 5-iteration circuit breaker and git rollback on regressions.
-   - Enforces strict `< 200 LOC` invariant before accepting changes.
-
-3. **`/goal` (Durable Milestone Manager)**:
-   - Manages state machine: `IDLE` -> `PLANNING` -> `COOKING` -> `VERIFYING` -> `PAUSED` -> `COMPLETED`.
-   - Persists state checkpoints to SQLite (`task_checkpoints`).
-   - Supports seamless pause/resume and Gate 4 human approval interlocks.
+2. **`agent-supervisor.js` (Crash Recovery & Heartbeat Daemon)**:
+   - Maintains periodic heartbeat timestamps in SQLite `task_checkpoints`.
+   - On proxy startup, performs recovery reconciliation: detects tasks orphaned in `COOKING` or `PLANNING` states.
+   - Automatically marks orphaned tasks as `INTERRUPTED` or transitions them to resume queues.
+   - Dispatches supervisor events via SSE to the Factory Dashboard.
 
 ## Invariants
 - **0 external npm dependencies** in proxy (100% native Node.js).
 - **< 200 LOC per file** across all source and test modules.
 - **Metal GPU safety**: Strict single-concurrency for local inference.
+- **Process Tree Cleanup**: 100% of child processes terminated on timeout or abort.

@@ -56,7 +56,15 @@ export interface GoalStatus {
 }
 
 export interface FactoryEvent {
-  type: 'goal_state' | 'cook_log' | 'circuit_breaker' | 'heartbeat';
+  type:
+    | 'goal_state'
+    | 'cook_log'
+    | 'circuit_breaker'
+    | 'heartbeat'
+    | 'supervisor_heartbeat'
+    | 'supervisor_reconcile'
+    | 'supervisor_deadman'
+    | 'supervisor_kill_all';
   timestamp: string;
   payload: {
     goalId?: string;
@@ -64,5 +72,31 @@ export interface FactoryEvent {
     message?: string;
     cycle?: number;
     error?: string;
+    killedCount?: number;
+    recoveredTasks?: number;
   };
+}
+
+export interface SupervisorTask {
+  taskId: string;
+  registeredAt: string;
+  lastHeartbeat: string;
+  pgid?: number | null;
+}
+
+export interface SupervisorJail {
+  jailId: string;
+  pid: number | null;
+  pgid: number | null;
+  command: string;
+  startedAt: string;
+  timedOut: boolean;
+}
+
+export interface SupervisorStatus {
+  activeTasks: SupervisorTask[];
+  activeCount: number;
+  lastHeartbeat: string | null;
+  bootReconciledCount: number;
+  activeJails: SupervisorJail[];
 }

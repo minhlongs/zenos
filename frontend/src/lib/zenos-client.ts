@@ -1,5 +1,5 @@
 import { TelemetrySummary, ApprovalRecord, TelemetryEvent } from '../types/zenos';
-import { ZenPlan, CookCycleResult, GoalStatus } from '../types/factory';
+import { ZenPlan, CookCycleResult, GoalStatus, SupervisorStatus } from '../types/factory';
 
 const BASE_URL = process.env.NEXT_PUBLIC_ZENOS_URL || 'http://127.0.0.1:4000';
 
@@ -112,5 +112,27 @@ export async function updateGoalAction(id: string, action: 'pause' | 'resume' | 
     return res.ok;
   } catch {
     return false;
+  }
+}
+
+export async function getSupervisorStatus(): Promise<SupervisorStatus | null> {
+  try {
+    const res = await fetch(`${BASE_URL}/v1/factory/supervisor/status`, { cache: 'no-store' });
+    if (!res.ok) return null;
+    const data = await res.json() as { status: string; supervisor: SupervisorStatus };
+    return data.supervisor;
+  } catch {
+    return null;
+  }
+}
+
+export async function killAllJails(): Promise<number | null> {
+  try {
+    const res = await fetch(`${BASE_URL}/v1/factory/supervisor/kill-all`, { method: 'POST' });
+    if (!res.ok) return null;
+    const data = await res.json() as { success: boolean; killedCount: number };
+    return data.killedCount;
+  } catch {
+    return null;
   }
 }
