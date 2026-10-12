@@ -55,6 +55,14 @@ Solo software founders and technical architects operating on macOS (M1/M2/M3/M4 
 - Metal GPU single-concurrency serialization avoiding unified memory context thrashing.
 - Real-time Next.js operator portal displaying role pipeline and dual-key locks (`SwarmConsole`).
 
+### FR-10: Autonomous Code Refactoring Engine & Complexity Heatmaps (`ComplexityAnalyzer` & `AstSlicer`)
+- Zero-dependency lexical and AST-lite code analysis calculating LOC breakdown and branching complexity.
+- Monolith risk scoring formula ranking candidate files for proactive modularization.
+- Automated semantic slicing decomposing large files into cohesive submodules (< 100 LOC).
+- Backward-compatible facade barrel exports (`index.js`) preserving existing consumer import paths.
+- TDD-verified atomic execution with instant rollback on test failure or LOC violation.
+- Next.js RefactorConsole dashboard with health gauges, heatmaps, and live SSE streaming logs.
+
 ## Non-Functional Requirements
 - Zero external proxy dependencies (pure native Node.js).
 - 100% green test pass rate.

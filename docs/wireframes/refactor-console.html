@@ -1,0 +1,1201 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ZenOS Gate 12 — RefactorConsole Wireframe</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['Inter', 'system-ui', 'sans-serif'],
+            mono: ['JetBrains Mono', 'Fira Code', 'monospace']
+          },
+          colors: {
+            zinc: {
+              950: '#09090b',
+              900: '#18181b',
+              850: '#202024',
+              800: '#27272a',
+              700: '#3f3f46',
+              600: '#52525b',
+              400: '#a1a1aa'
+            }
+          }
+        }
+      }
+    }
+  </script>
+  <style>
+    :root {
+      --bg: #09090b;
+      --card: #18181b;
+      --border: #27272a;
+      --border-subtle: #3f3f46;
+      --emerald: #34d399;
+      --violet: #a78bfa;
+      --amber: #fbbf24;
+      --rose: #fb7185;
+      --sky: #38bdf8;
+    }
+
+    body {
+      background-color: var(--bg);
+      background-image:
+        radial-gradient(circle at 50% 0%, rgba(167, 139, 250, 0.08) 0%, transparent 55%),
+        radial-gradient(circle at 100% 100%, rgba(52, 211, 153, 0.04) 0%, transparent 40%),
+        linear-gradient(rgba(255, 255, 255, 0.015) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255, 255, 255, 0.015) 1px, transparent 1px);
+      background-size: 100% 100%, 100% 100%, 32px 32px, 32px 32px;
+      color: #f4f4f5;
+      font-family: 'Inter', system-ui, sans-serif;
+      min-height: 100vh;
+    }
+
+    .custom-scroll::-webkit-scrollbar {
+      width: 6px;
+      height: 6px;
+    }
+    .custom-scroll::-webkit-scrollbar-track {
+      background: #09090b;
+    }
+    .custom-scroll::-webkit-scrollbar-thumb {
+      background: #27272a;
+      border-radius: 3px;
+    }
+    .custom-scroll::-webkit-scrollbar-thumb:hover {
+      background: #3f3f46;
+    }
+
+    .glow-emerald {
+      box-shadow: 0 0 20px -4px rgba(52, 211, 153, 0.25);
+    }
+    .glow-violet {
+      box-shadow: 0 0 20px -4px rgba(167, 139, 250, 0.25);
+    }
+    .glow-rose {
+      box-shadow: 0 0 20px -4px rgba(251, 113, 133, 0.25);
+    }
+
+    .gauge-circle {
+      transform: rotate(-90deg);
+      transform-origin: 50% 50%;
+      stroke-dasharray: 283;
+      stroke-dashoffset: 16.4; /* 94.2% filled */
+      transition: stroke-dashoffset 0.8s ease-out;
+    }
+
+    .badge-cyber {
+      position: relative;
+    }
+    .badge-cyber::before {
+      content: '';
+      position: absolute;
+      left: -2px;
+      top: -2px;
+      bottom: -2px;
+      width: 2px;
+      background: currentColor;
+      border-radius: 2px;
+    }
+
+    .switch-toggle {
+      transition: transform 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    .code-syntax .kw { color: #f472b6; }
+    .code-syntax .fn { color: #60a5fa; }
+    .code-syntax .str { color: #34d399; }
+    .code-syntax .num { color: #fbbf24; }
+    .code-syntax .cmt { color: #71717a; font-style: italic; }
+    .code-syntax .typ { color: #a78bfa; }
+  </style>
+</head>
+<body class="p-4 md:p-8 antialiased selection:bg-violet-900 selection:text-violet-200">
+
+  <!-- Main Container -->
+  <div class="max-w-7xl mx-auto space-y-6">
+
+    <!-- Top Navigation / Header -->
+    <header class="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-5 border-b border-zinc-800">
+      <div>
+        <div class="flex items-center gap-3">
+          <div class="w-8 h-8 rounded bg-gradient-to-br from-violet-600 via-indigo-600 to-emerald-500 flex items-center justify-center font-mono font-bold text-xs text-white shadow-lg shadow-violet-950">
+            Z12
+          </div>
+          <div>
+            <div class="flex items-center gap-2">
+              <h1 class="text-xl md:text-2xl font-bold tracking-tight text-zinc-100 font-sans">
+                RefactorConsole
+              </h1>
+              <span class="px-2 py-0.5 rounded text-[11px] font-mono font-semibold bg-violet-950 text-violet-300 border border-violet-800">
+                GATE 12
+              </span>
+              <span class="px-2 py-0.5 rounded text-[11px] font-mono bg-emerald-950 text-emerald-400 border border-emerald-800 flex items-center gap-1.5">
+                <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>
+                AST ENGINE ACTIVE
+              </span>
+            </div>
+            <p class="text-xs text-zinc-400 mt-0.5">
+              ZenOS Autonomous Code Refactoring Engine, Complexity Heatmaps & Dual-Key Safety Gate
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Global Engine Controls -->
+      <div class="flex flex-wrap items-center gap-2.5">
+        <div class="flex items-center gap-2 px-3 py-1.5 rounded-md bg-zinc-900 border border-zinc-800 text-xs font-mono text-zinc-300">
+          <span class="w-2 h-2 rounded-full bg-sky-400 animate-ping"></span>
+          <span class="text-zinc-400">SSE Feed:</span>
+          <span class="text-sky-300 font-semibold" id="sse-indicator">CONNECTED (24ms)</span>
+        </div>
+
+        <button onclick="simulateWorkspaceScan()" class="px-3.5 py-1.5 bg-zinc-800 hover:bg-zinc-700 text-zinc-200 text-xs font-semibold rounded-md border border-zinc-700 transition flex items-center gap-1.5">
+          <svg class="w-3.5 h-3.5 text-zinc-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
+          </svg>
+          Re-scan Workspace
+        </button>
+
+        <button onclick="triggerAutoSliceAll()" class="px-3.5 py-1.5 bg-violet-600 hover:bg-violet-500 text-white text-xs font-semibold rounded-md shadow-lg shadow-violet-900/40 transition flex items-center gap-1.5 glow-violet">
+          <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path>
+          </svg>
+          Auto-Slice All Monoliths
+        </button>
+      </div>
+    </header>
+
+    <!-- SECTION 1: Workspace Health Gauge & Key Metric Panels -->
+    <section class="grid grid-cols-1 lg:grid-cols-12 gap-5">
+
+      <!-- Radial Health Gauge Card -->
+      <div class="lg:col-span-5 bg-zinc-900 border border-zinc-800 rounded-lg p-5 flex flex-col justify-between">
+        <div class="flex items-center justify-between pb-3 border-b border-zinc-800/80">
+          <div class="flex items-center gap-2">
+            <span class="text-xs font-mono font-semibold text-zinc-400 uppercase tracking-wider">Workspace Health</span>
+            <span class="px-2 py-0.5 rounded text-[10px] font-mono bg-emerald-950/80 text-emerald-400 border border-emerald-800">
+              OPTIMAL COMPLIANCE
+            </span>
+          </div>
+          <span class="text-[11px] font-mono text-zinc-500">AST Policy: &lt; 200 LOC</span>
+        </div>
+
+        <div class="flex items-center gap-6 py-4">
+          <!-- Circular SVG Gauge -->
+          <div class="relative w-32 h-32 flex-shrink-0 flex items-center justify-center">
+            <svg class="w-full h-full" viewBox="0 0 100 100">
+              <!-- Background Circle -->
+              <circle cx="50" cy="50" r="45" fill="none" stroke="#27272a" stroke-width="8" stroke-dasharray="283" stroke-dashoffset="0"></circle>
+              <!-- Progress Arc -->
+              <circle id="gauge-circle" class="gauge-circle" cx="50" cy="50" r="45" fill="none" stroke="url(#emerald-gradient)" stroke-width="8" stroke-linecap="round"></circle>
+              <defs>
+                <linearGradient id="emerald-gradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                  <stop offset="0%" stop-color="#34d399"></stop>
+                  <stop offset="100%" stop-color="#10b981"></stop>
+                </linearGradient>
+              </defs>
+            </svg>
+            <div class="absolute inset-0 flex flex-col items-center justify-center text-center">
+              <span id="health-percentage" class="text-2xl font-bold font-mono text-emerald-400 tracking-tight">94.2%</span>
+              <span class="text-[10px] uppercase font-mono tracking-widest text-zinc-400">HEALTHY</span>
+            </div>
+          </div>
+
+          <!-- Breakdown beside gauge -->
+          <div class="space-y-2.5 flex-1 font-mono text-xs">
+            <div class="flex items-center justify-between pb-1 border-b border-zinc-800/60">
+              <span class="text-zinc-400">Compliant Modules:</span>
+              <span class="text-emerald-400 font-semibold font-mono">425 / 428</span>
+            </div>
+            <div class="flex items-center justify-between pb-1 border-b border-zinc-800/60">
+              <span class="text-zinc-400">Max Module Ceiling:</span>
+              <span class="text-zinc-200 font-mono">174 LOC <span class="text-zinc-500">(&lt; 200L limit)</span></span>
+            </div>
+            <div class="flex items-center justify-between pb-1 border-b border-zinc-800/60">
+              <span class="text-zinc-400">Total Lines Scanned:</span>
+              <span class="text-zinc-200 font-mono">28,490 LOC</span>
+            </div>
+            <div class="flex items-center justify-between">
+              <span class="text-zinc-400">Partition Efficiency:</span>
+              <span class="text-violet-400 font-semibold font-mono">98.4% Zero Regress</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="pt-3 border-t border-zinc-800/80 flex items-center justify-between text-[11px] text-zinc-400">
+          <span>TDD Regression Invariant: <strong class="text-emerald-400">190/190 PASS</strong></span>
+          <span class="font-mono text-zinc-500">Updated: 14s ago</span>
+        </div>
+      </div>
+
+      <!-- 3 Key Metric Cards -->
+      <div class="lg:col-span-7 grid grid-cols-1 sm:grid-cols-3 gap-4">
+
+        <!-- Scanned Files Card -->
+        <div class="bg-zinc-900 border border-zinc-800 rounded-lg p-4 flex flex-col justify-between">
+          <div class="flex items-center justify-between">
+            <span class="text-xs font-semibold text-zinc-400">Scanned Files</span>
+            <span class="px-1.5 py-0.5 rounded text-[10px] font-mono bg-zinc-800 text-zinc-300">TS / JS / TSX</span>
+          </div>
+          <div class="my-3">
+            <div class="text-3xl font-bold font-mono text-zinc-100 tracking-tight">428</div>
+            <div class="text-[11px] text-emerald-400 font-mono flex items-center gap-1 mt-1">
+              <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 10l7-7m0 0l7 7m-7-7v18"></path></svg>
+              <span>+14 files indexed this session</span>
+            </div>
+          </div>
+          <div class="text-[11px] text-zinc-500 pt-2 border-t border-zinc-800/80">
+            Zero circular import cycles detected
+          </div>
+        </div>
+
+        <!-- Files > 150 LOC Warning Card -->
+        <div class="bg-zinc-900 border border-zinc-800 rounded-lg p-4 flex flex-col justify-between">
+          <div class="flex items-center justify-between">
+            <span class="text-xs font-semibold text-zinc-400">Files &gt; 150 LOC</span>
+            <span class="px-2 py-0.5 rounded text-[10px] font-mono bg-amber-950 text-amber-400 border border-amber-800">
+              ACTION NEEDED
+            </span>
+          </div>
+          <div class="my-3">
+            <div class="text-3xl font-bold font-mono text-amber-400 tracking-tight">3</div>
+            <div class="text-[11px] text-amber-300/80 font-mono flex items-center gap-1 mt-1">
+              <span>0.7% of total codebase</span>
+            </div>
+          </div>
+          <div class="text-[11px] text-zinc-500 pt-2 border-t border-zinc-800/80">
+            Target: Slicing into 8 submodules
+          </div>
+        </div>
+
+        <!-- Average Cyclomatic Complexity Card -->
+        <div class="bg-zinc-900 border border-zinc-800 rounded-lg p-4 flex flex-col justify-between">
+          <div class="flex items-center justify-between">
+            <span class="text-xs font-semibold text-zinc-400">Avg Cyclomatic CCN</span>
+            <span class="px-1.5 py-0.5 rounded text-[10px] font-mono bg-violet-950 text-violet-300 border border-violet-800">
+              AST DEPTH
+            </span>
+          </div>
+          <div class="my-3">
+            <div class="text-3xl font-bold font-mono text-violet-400 tracking-tight">4.2</div>
+            <div class="text-[11px] text-zinc-400 font-mono flex items-center gap-1 mt-1">
+              <span>Threshold target: &lt; 8.0 CCN</span>
+            </div>
+          </div>
+          <div class="text-[11px] text-zinc-500 pt-2 border-t border-zinc-800/80">
+            Max nesting level: 3 indentation blocks
+          </div>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- SECTION 2: Monolith Candidate Hotlist -->
+    <section class="bg-zinc-900 border border-zinc-800 rounded-lg p-5">
+      <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4">
+        <div>
+          <div class="flex items-center gap-2">
+            <h2 class="text-base font-semibold text-zinc-100">Monolith Candidate Hotlist</h2>
+            <span class="px-2 py-0.5 rounded text-[10px] font-mono bg-rose-950 text-rose-300 border border-rose-800">
+              PRIORITY QUEUE
+            </span>
+          </div>
+          <p class="text-xs text-zinc-400 mt-0.5">Automated detection of files approaching or exceeding 150 LOC ceiling</p>
+        </div>
+
+        <!-- Filter tabs -->
+        <div class="flex items-center gap-2 font-mono text-xs">
+          <button onclick="filterCandidates('all')" id="btn-filter-all" class="px-2.5 py-1 rounded bg-zinc-800 text-zinc-200 border border-zinc-700">All (6)</button>
+          <button onclick="filterCandidates('high')" id="btn-filter-high" class="px-2.5 py-1 rounded bg-zinc-950 text-zinc-400 hover:text-zinc-200 border border-zinc-800">High Risk (3)</button>
+          <button onclick="filterCandidates('med')" id="btn-filter-med" class="px-2.5 py-1 rounded bg-zinc-950 text-zinc-400 hover:text-zinc-200 border border-zinc-800">Medium (2)</button>
+          <button onclick="filterCandidates('low')" id="btn-filter-low" class="px-2.5 py-1 rounded bg-zinc-950 text-zinc-400 hover:text-zinc-200 border border-zinc-800">Low (1)</button>
+        </div>
+      </div>
+
+      <!-- Hotlist Table -->
+      <div class="overflow-x-auto">
+        <table class="w-full text-left text-xs font-mono">
+          <thead>
+            <tr class="text-zinc-400 border-b border-zinc-800 pb-2">
+              <th class="pb-2.5 font-medium">Source File Path</th>
+              <th class="pb-2.5 font-medium">Lines (LOC)</th>
+              <th class="pb-2.5 font-medium">Branching Density</th>
+              <th class="pb-2.5 font-medium">Cyclomatic CCN</th>
+              <th class="pb-2.5 font-medium">Monolith Risk</th>
+              <th class="pb-2.5 font-medium">Target Plan</th>
+              <th class="pb-2.5 font-medium text-right">Action</th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-zinc-800/80" id="candidate-table-body">
+
+            <!-- Candidate 1 (Active Selected) -->
+            <tr class="hover:bg-zinc-850/60 transition cursor-pointer bg-violet-950/20" onclick="selectCandidate(0)" id="row-cand-0">
+              <td class="py-3 text-zinc-200 font-semibold flex items-center gap-2">
+                <span class="w-2 h-2 rounded-full bg-violet-400"></span>
+                <span class="text-violet-300">src/workflow/tool-harness.js</span>
+                <span class="text-[10px] px-1.5 py-0.2 rounded bg-zinc-800 text-zinc-400">ACTIVE</span>
+              </td>
+              <td class="py-3 text-amber-400 font-bold">174 LOC</td>
+              <td class="py-3 text-zinc-300">18 branches / 100L</td>
+              <td class="py-3 text-rose-400 font-semibold">16.0</td>
+              <td class="py-3">
+                <span class="px-2 py-0.5 rounded text-[11px] font-semibold bg-rose-950 text-rose-400 border border-rose-800">
+                  HIGH (88/100)
+                </span>
+              </td>
+              <td class="py-3 text-zinc-400">2 submodules + barrel</td>
+              <td class="py-3 text-right">
+                <button onclick="event.stopPropagation(); triggerSliceCandidate(0)" class="px-3 py-1 bg-violet-600 hover:bg-violet-500 text-white rounded text-[11px] font-semibold shadow-sm transition">
+                  Auto-Slice
+                </button>
+              </td>
+            </tr>
+
+            <!-- Candidate 2 -->
+            <tr class="hover:bg-zinc-850/60 transition cursor-pointer" onclick="selectCandidate(1)" id="row-cand-1">
+              <td class="py-3 text-zinc-300 flex items-center gap-2">
+                <span class="w-2 h-2 rounded-full bg-amber-400"></span>
+                <span>src/workflow/routes-factory.js</span>
+              </td>
+              <td class="py-3 text-amber-400 font-bold">167 LOC</td>
+              <td class="py-3 text-zinc-300">14 branches / 100L</td>
+              <td class="py-3 text-rose-400 font-semibold">13.5</td>
+              <td class="py-3">
+                <span class="px-2 py-0.5 rounded text-[11px] font-semibold bg-rose-950 text-rose-400 border border-rose-800">
+                  HIGH (82/100)
+                </span>
+              </td>
+              <td class="py-3 text-zinc-400">2 submodules + barrel</td>
+              <td class="py-3 text-right">
+                <button onclick="event.stopPropagation(); triggerSliceCandidate(1)" class="px-3 py-1 bg-zinc-800 hover:bg-violet-600 hover:text-white text-zinc-300 rounded text-[11px] font-semibold border border-zinc-700 transition">
+                  Auto-Slice
+                </button>
+              </td>
+            </tr>
+
+            <!-- Candidate 3 -->
+            <tr class="hover:bg-zinc-850/60 transition cursor-pointer" onclick="selectCandidate(2)" id="row-cand-2">
+              <td class="py-3 text-zinc-300 flex items-center gap-2">
+                <span class="w-2 h-2 rounded-full bg-amber-400"></span>
+                <span>src/workflow/react-agent-loop.js</span>
+              </td>
+              <td class="py-3 text-amber-400 font-bold">160 LOC</td>
+              <td class="py-3 text-zinc-300">16 branches / 100L</td>
+              <td class="py-3 text-amber-400 font-semibold">14.0</td>
+              <td class="py-3">
+                <span class="px-2 py-0.5 rounded text-[11px] font-semibold bg-rose-950 text-rose-400 border border-rose-800">
+                  HIGH (79/100)
+                </span>
+              </td>
+              <td class="py-3 text-zinc-400">3 submodules + barrel</td>
+              <td class="py-3 text-right">
+                <button onclick="event.stopPropagation(); triggerSliceCandidate(2)" class="px-3 py-1 bg-zinc-800 hover:bg-violet-600 hover:text-white text-zinc-300 rounded text-[11px] font-semibold border border-zinc-700 transition">
+                  Auto-Slice
+                </button>
+              </td>
+            </tr>
+
+            <!-- Candidate 4 -->
+            <tr class="hover:bg-zinc-850/60 transition cursor-pointer" onclick="selectCandidate(3)" id="row-cand-3">
+              <td class="py-3 text-zinc-300 flex items-center gap-2">
+                <span class="w-2 h-2 rounded-full bg-zinc-500"></span>
+                <span>src/workflow/cook-runner.js</span>
+              </td>
+              <td class="py-3 text-zinc-300">148 LOC</td>
+              <td class="py-3 text-zinc-400">11 branches / 100L</td>
+              <td class="py-3 text-zinc-300">9.2</td>
+              <td class="py-3">
+                <span class="px-2 py-0.5 rounded text-[11px] font-semibold bg-amber-950 text-amber-400 border border-amber-800">
+                  MED (58/100)
+                </span>
+              </td>
+              <td class="py-3 text-zinc-400">2 submodules</td>
+              <td class="py-3 text-right">
+                <button onclick="event.stopPropagation(); triggerSliceCandidate(3)" class="px-3 py-1 bg-zinc-800 hover:bg-zinc-700 text-zinc-400 rounded text-[11px] font-semibold border border-zinc-700 transition">
+                  Plan Slice
+                </button>
+              </td>
+            </tr>
+
+            <!-- Candidate 5 -->
+            <tr class="hover:bg-zinc-850/60 transition cursor-pointer" onclick="selectCandidate(4)" id="row-cand-4">
+              <td class="py-3 text-zinc-300 flex items-center gap-2">
+                <span class="w-2 h-2 rounded-full bg-zinc-500"></span>
+                <span>src/memory/context-compressor.js</span>
+              </td>
+              <td class="py-3 text-zinc-300">142 LOC</td>
+              <td class="py-3 text-zinc-400">9 branches / 100L</td>
+              <td class="py-3 text-zinc-300">8.0</td>
+              <td class="py-3">
+                <span class="px-2 py-0.5 rounded text-[11px] font-semibold bg-amber-950 text-amber-400 border border-amber-800">
+                  MED (52/100)
+                </span>
+              </td>
+              <td class="py-3 text-zinc-400">2 submodules</td>
+              <td class="py-3 text-right">
+                <button onclick="event.stopPropagation(); triggerSliceCandidate(4)" class="px-3 py-1 bg-zinc-800 hover:bg-zinc-700 text-zinc-400 rounded text-[11px] font-semibold border border-zinc-700 transition">
+                  Plan Slice
+                </button>
+              </td>
+            </tr>
+
+            <!-- Candidate 6 -->
+            <tr class="hover:bg-zinc-850/60 transition cursor-pointer" onclick="selectCandidate(5)" id="row-cand-5">
+              <td class="py-3 text-zinc-400 flex items-center gap-2">
+                <span class="w-2 h-2 rounded-full bg-emerald-500"></span>
+                <span>src/process/jail-guard.js</span>
+              </td>
+              <td class="py-3 text-emerald-400">96 LOC</td>
+              <td class="py-3 text-zinc-500">6 branches / 100L</td>
+              <td class="py-3 text-zinc-400">4.1</td>
+              <td class="py-3">
+                <span class="px-2 py-0.5 rounded text-[11px] font-semibold bg-emerald-950 text-emerald-400 border border-emerald-800">
+                  LOW (18/100)
+                </span>
+              </td>
+              <td class="py-3 text-zinc-500">Compliant (No slice needed)</td>
+              <td class="py-3 text-right">
+                <span class="text-emerald-400 text-[11px] font-semibold pr-2">PASS</span>
+              </td>
+            </tr>
+
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- SECTION 3: AST Dependency & Slicing Visualizer -->
+    <section class="bg-zinc-900 border border-zinc-800 rounded-lg p-5">
+      <div class="flex flex-col md:flex-row md:items-center justify-between pb-4 border-b border-zinc-800 gap-3">
+        <div>
+          <div class="flex items-center gap-2.5">
+            <h2 class="text-base font-semibold text-zinc-100">AST Dependency & Slicing Visualizer</h2>
+            <span class="px-2 py-0.5 rounded text-[11px] font-mono bg-violet-950 text-violet-300 border border-violet-800 font-semibold" id="active-candidate-badge">
+              TARGET: tool-harness.js (174 LOC)
+            </span>
+          </div>
+          <p class="text-xs text-zinc-400 mt-0.5">
+            Zero-friction AST symbol partitioning into isolated submodules (&lt; 100 LOC) and backward-compatible barrel facade
+          </p>
+        </div>
+
+        <div class="flex items-center gap-2">
+          <span class="text-xs text-zinc-400 font-mono">AST Engine:</span>
+          <span class="text-xs font-mono px-2 py-0.5 bg-zinc-950 rounded border border-zinc-800 text-emerald-400">TypeScript 5.x AST Walker</span>
+        </div>
+      </div>
+
+      <!-- Split View Layout -->
+      <div class="grid grid-cols-1 lg:grid-cols-12 gap-5 mt-5">
+
+        <!-- Left Pane: Original Monolith AST Symbols (5 Cols) -->
+        <div class="lg:col-span-5 bg-zinc-950 border border-zinc-800 rounded-lg p-4 flex flex-col justify-between">
+          <div>
+            <div class="flex items-center justify-between pb-3 border-b border-zinc-800/80">
+              <span class="text-xs font-semibold text-rose-300 font-mono flex items-center gap-1.5">
+                <span class="w-2 h-2 rounded-full bg-rose-400"></span>
+                Original Monolith Symbols (174 LOC)
+              </span>
+              <span class="text-[11px] font-mono text-zinc-500">5 Top-Level Declarations</span>
+            </div>
+
+            <!-- AST Symbol Tree -->
+            <div class="mt-3 space-y-2 font-mono text-xs">
+
+              <div class="p-2.5 rounded bg-zinc-900 border border-zinc-800/80 hover:border-zinc-700 transition">
+                <div class="flex items-center justify-between">
+                  <div class="flex items-center gap-2">
+                    <span class="px-1.5 py-0.5 rounded text-[10px] bg-blue-950 text-blue-400 border border-blue-900">CLASS</span>
+                    <span class="text-zinc-200 font-semibold">ToolHarness</span>
+                  </div>
+                  <span class="text-amber-400 text-[11px]">78 LOC</span>
+                </div>
+                <p class="text-[11px] text-zinc-400 mt-1 pl-2 border-l border-zinc-800">
+                  Manages tool registration, invocation guards, execution timeouts
+                </p>
+              </div>
+
+              <div class="p-2.5 rounded bg-zinc-900 border border-zinc-800/80 hover:border-zinc-700 transition">
+                <div class="flex items-center justify-between">
+                  <div class="flex items-center gap-2">
+                    <span class="px-1.5 py-0.5 rounded text-[10px] bg-emerald-950 text-emerald-400 border border-emerald-900">FN</span>
+                    <span class="text-zinc-200 font-semibold">executeFileTool()</span>
+                  </div>
+                  <span class="text-amber-400 text-[11px]">42 LOC</span>
+                </div>
+                <p class="text-[11px] text-zinc-400 mt-1 pl-2 border-l border-zinc-800">
+                  Reads, writes, edits local project files with UTF-8 normalization
+                </p>
+              </div>
+
+              <div class="p-2.5 rounded bg-zinc-900 border border-zinc-800/80 hover:border-zinc-700 transition">
+                <div class="flex items-center justify-between">
+                  <div class="flex items-center gap-2">
+                    <span class="px-1.5 py-0.5 rounded text-[10px] bg-emerald-950 text-emerald-400 border border-emerald-900">FN</span>
+                    <span class="text-zinc-200 font-semibold">executeShellTool()</span>
+                  </div>
+                  <span class="text-amber-400 text-[11px]">34 LOC</span>
+                </div>
+                <p class="text-[11px] text-zinc-400 mt-1 pl-2 border-l border-zinc-800">
+                  Spawns child processes in sandboxed PGID with timeout killswitch
+                </p>
+              </div>
+
+              <div class="p-2.5 rounded bg-zinc-900 border border-zinc-800/80 hover:border-zinc-700 transition">
+                <div class="flex items-center justify-between">
+                  <div class="flex items-center gap-2">
+                    <span class="px-1.5 py-0.5 rounded text-[10px] bg-violet-950 text-violet-400 border border-violet-900">UTIL</span>
+                    <span class="text-zinc-200 font-semibold">formatToolOutput()</span>
+                  </div>
+                  <span class="text-zinc-400 text-[11px]">20 LOC</span>
+                </div>
+                <p class="text-[11px] text-zinc-400 mt-1 pl-2 border-l border-zinc-800">
+                  Truncates stdout/stderr exceeding buffer window, formats error JSON
+                </p>
+              </div>
+
+            </div>
+          </div>
+
+          <div class="pt-3 mt-3 border-t border-zinc-800/80 text-[11px] font-mono text-zinc-400 flex items-center justify-between">
+            <span>AST Cyclomatic Density: <span class="text-rose-400 font-bold">16.0 (High)</span></span>
+            <span>External Dependencies: <span class="text-emerald-400 font-bold">0</span></span>
+          </div>
+        </div>
+
+        <!-- Center Transition Indicator (Mobile hidden, desktop arrow) -->
+        <div class="hidden lg:flex lg:col-span-1 items-center justify-center flex-col gap-2">
+          <div class="w-0.5 h-12 bg-gradient-to-b from-transparent via-violet-500 to-transparent"></div>
+          <div class="w-8 h-8 rounded-full bg-violet-950 border border-violet-700 flex items-center justify-center text-violet-300 font-mono text-xs font-bold glow-violet">
+            &rarr;
+          </div>
+          <div class="text-[10px] font-mono text-violet-400 text-center uppercase tracking-wider">
+            AST SLICE
+          </div>
+          <div class="w-0.5 h-12 bg-gradient-to-b from-transparent via-emerald-500 to-transparent"></div>
+        </div>
+
+        <!-- Right Pane: Sliced Target Submodules & Barrel Facade (6 Cols) -->
+        <div class="lg:col-span-6 bg-zinc-950 border border-zinc-800 rounded-lg p-4 flex flex-col justify-between">
+          <div>
+            <div class="flex items-center justify-between pb-3 border-b border-zinc-800/80">
+              <span class="text-xs font-semibold text-emerald-400 font-mono flex items-center gap-1.5">
+                <span class="w-2 h-2 rounded-full bg-emerald-400"></span>
+                Target Sliced Architecture (All &lt; 100 LOC)
+              </span>
+              <span class="text-[11px] font-mono text-zinc-400 font-bold">3 Modular Units</span>
+            </div>
+
+            <!-- Target Sliced Submodules -->
+            <div class="mt-3 space-y-2.5 font-mono text-xs">
+
+              <!-- Extracted 1 -->
+              <div class="p-3 rounded bg-zinc-900 border border-emerald-900/50 hover:border-emerald-700/80 transition">
+                <div class="flex items-center justify-between">
+                  <div class="flex items-center gap-2">
+                    <span class="px-1.5 py-0.5 rounded text-[10px] bg-emerald-950 text-emerald-300 border border-emerald-800">EXTRACTED 1</span>
+                    <span class="text-zinc-100 font-bold">src/workflow/tools/file-ops.js</span>
+                  </div>
+                  <span class="text-emerald-400 font-bold text-xs">58 LOC</span>
+                </div>
+                <div class="text-[11px] text-zinc-400 mt-1 flex items-center justify-between">
+                  <span>Contains: <code class="text-zinc-300">executeFileTool()</code>, path guards</span>
+                  <span class="text-emerald-400 font-semibold">&lt; 100L PASS</span>
+                </div>
+              </div>
+
+              <!-- Extracted 2 -->
+              <div class="p-3 rounded bg-zinc-900 border border-emerald-900/50 hover:border-emerald-700/80 transition">
+                <div class="flex items-center justify-between">
+                  <div class="flex items-center gap-2">
+                    <span class="px-1.5 py-0.5 rounded text-[10px] bg-emerald-950 text-emerald-300 border border-emerald-800">EXTRACTED 2</span>
+                    <span class="text-zinc-100 font-bold">src/workflow/tools/shell-ops.js</span>
+                  </div>
+                  <span class="text-emerald-400 font-bold text-xs">52 LOC</span>
+                </div>
+                <div class="text-[11px] text-zinc-400 mt-1 flex items-center justify-between">
+                  <span>Contains: <code class="text-zinc-300">executeShellTool()</code>, output buffer</span>
+                  <span class="text-emerald-400 font-semibold">&lt; 100L PASS</span>
+                </div>
+              </div>
+
+              <!-- Barrel Facade -->
+              <div class="p-3 rounded bg-zinc-900 border border-violet-900/60 hover:border-violet-700/80 transition">
+                <div class="flex items-center justify-between">
+                  <div class="flex items-center gap-2">
+                    <span class="px-1.5 py-0.5 rounded text-[10px] bg-violet-950 text-violet-300 border border-violet-800">BARREL FACADE</span>
+                    <span class="text-violet-200 font-bold">src/workflow/tool-harness.js</span>
+                  </div>
+                  <span class="text-violet-400 font-bold text-xs">64 LOC</span>
+                </div>
+                <div class="text-[11px] text-zinc-400 mt-1 flex items-center justify-between">
+                  <span>Unified exports, zero breaking changes to consumers</span>
+                  <span class="text-emerald-400 font-semibold">100% COMPATIBLE</span>
+                </div>
+              </div>
+
+            </div>
+          </div>
+
+          <!-- Code Preview Accordion / Tabs -->
+          <div class="mt-4 pt-3 border-t border-zinc-800/80">
+            <div class="flex items-center justify-between pb-2">
+              <span class="text-[11px] font-mono font-semibold text-zinc-400">Live Code Preview:</span>
+              <div class="flex gap-1.5 font-mono text-[10px]">
+                <button onclick="switchCodeTab('barrel')" id="tab-barrel" class="px-2 py-0.5 rounded bg-violet-900/60 text-violet-200 border border-violet-700">tool-harness.js (Facade)</button>
+                <button onclick="switchCodeTab('fileops')" id="tab-fileops" class="px-2 py-0.5 rounded bg-zinc-900 text-zinc-400 hover:text-zinc-200 border border-zinc-800">file-ops.js</button>
+              </div>
+            </div>
+
+            <!-- Code block -->
+            <pre class="p-3 bg-zinc-900/90 rounded border border-zinc-800 font-mono text-[11px] leading-relaxed custom-scroll overflow-x-auto text-zinc-300" id="code-preview-pane">
+<span class="cmt">// Facade barrel ensuring 100% backward compatibility</span>
+<span class="kw">import</span> { <span class="fn">executeFileTool</span> } <span class="kw">from</span> <span class="str">'./tools/file-ops.js'</span>;
+<span class="kw">import</span> { <span class="fn">executeShellTool</span> } <span class="kw">from</span> <span class="str">'./tools/shell-ops.js'</span>;
+
+<span class="kw">export class</span> <span class="typ">ToolHarness</span> {
+  <span class="kw">constructor</span>() {
+    <span class="kw">this</span>.handlers = <span class="kw">new</span> <span class="typ">Map</span>([
+      [<span class="str">'file'</span>, <span class="fn">executeFileTool</span>],
+      [<span class="str">'shell'</span>, <span class="fn">executeShellTool</span>]
+    ]);
+  }
+  <span class="kw">async</span> <span class="fn">execute</span>(<span class="typ">name</span>, <span class="typ">params</span>) {
+    <span class="kw">const</span> fn = <span class="kw">this</span>.handlers.<span class="fn">get</span>(<span class="typ">name</span>);
+    <span class="kw">return</span> <span class="kw">await</span> <span class="fn">fn</span>(<span class="typ">params</span>);
+  }
+}
+<span class="kw">export</span> { <span class="fn">executeFileTool</span>, <span class="fn">executeShellTool</span> };</pre>
+          </div>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- SECTION 4: Dual-Key Safety Witness Gauge & Rollback Failsafe -->
+    <section class="grid grid-cols-1 lg:grid-cols-12 gap-5">
+
+      <!-- Dual-Key Witness Panel (8 cols) -->
+      <div class="lg:col-span-8 bg-zinc-900 border border-zinc-800 rounded-lg p-5">
+        <div class="flex items-center justify-between pb-3 border-b border-zinc-800">
+          <div class="flex items-center gap-2">
+            <h3 class="text-sm font-semibold text-zinc-100">Dual-Key Consensus Safety Witness</h3>
+            <span class="px-2 py-0.5 rounded text-[10px] font-mono bg-emerald-950 text-emerald-400 border border-emerald-800 font-semibold">
+              GATE LOCKED (2/2 WITNESSES SIGNED)
+            </span>
+          </div>
+          <span class="text-xs font-mono text-zinc-500">Autonomous Gate 12 Requirement</span>
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-4">
+
+          <!-- Key 1: Deterministic TDD Pass Witness -->
+          <div class="p-3.5 bg-zinc-950 border border-emerald-900/60 rounded-md flex flex-col justify-between">
+            <div>
+              <div class="flex items-center justify-between">
+                <span class="text-xs font-semibold text-emerald-400 font-mono">KEY 1: TDD WITNESS</span>
+                <span class="px-2 py-0.5 rounded text-[10px] font-mono font-bold bg-emerald-950 text-emerald-400 border border-emerald-800">
+                  LOCKED
+                </span>
+              </div>
+              <div class="mt-2 text-xs font-mono text-zinc-300">
+                <div class="text-[11px] text-zinc-400">ProcessJail Sandbox Execution:</div>
+                <div class="text-emerald-400 font-semibold mt-1 text-sm">190 / 190 Tests GREEN</div>
+                <div class="text-[11px] text-zinc-500 mt-1">Duration: 142ms • Exit Code: 0 (Clean)</div>
+              </div>
+            </div>
+            <div class="pt-2.5 mt-2 border-t border-zinc-800/80 text-[11px] font-mono text-zinc-400 flex items-center justify-between">
+              <span>Signature: <code class="text-zinc-500">sha256:7b9f8a...</code></span>
+              <span class="text-emerald-400">Deterministic</span>
+            </div>
+          </div>
+
+          <!-- Key 2: Adversarial Invariant Audit Witness -->
+          <div class="p-3.5 bg-zinc-950 border border-emerald-900/60 rounded-md flex flex-col justify-between">
+            <div>
+              <div class="flex items-center justify-between">
+                <span class="text-xs font-semibold text-emerald-400 font-mono">KEY 2: INVARIANT AUDITOR</span>
+                <span class="px-2 py-0.5 rounded text-[10px] font-mono font-bold bg-emerald-950 text-emerald-400 border border-emerald-800">
+                  LOCKED
+                </span>
+              </div>
+              <div class="mt-2 text-xs font-mono text-zinc-300">
+                <div class="text-[11px] text-zinc-400">AST Static Structural Proof:</div>
+                <div class="text-emerald-400 font-semibold mt-1 text-sm">Max LOC: 64L (&lt; 100L target)</div>
+                <div class="text-[11px] text-zinc-500 mt-1">Export Parity: 100% • Cyclic Deps: 0</div>
+              </div>
+            </div>
+            <div class="pt-2.5 mt-2 border-t border-zinc-800/80 text-[11px] font-mono text-zinc-400 flex items-center justify-between">
+              <span>Auditor Agent: <code class="text-zinc-500">Sophia-AST-v2</code></span>
+              <span class="text-emerald-400">Verified</span>
+            </div>
+          </div>
+
+        </div>
+
+        <div class="mt-4 pt-3 border-t border-zinc-800 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs">
+          <div class="text-zinc-400 flex items-center gap-2">
+            <span class="w-2 h-2 rounded-full bg-emerald-400"></span>
+            <span>Both witnesses verified. Atomic refactor ready for zero-regression commit.</span>
+          </div>
+          <button onclick="commitRefactor()" id="btn-commit-refactor" class="px-4 py-2 bg-emerald-600 hover:bg-emerald-500 text-white font-semibold rounded text-xs shadow-md shadow-emerald-950 transition flex items-center justify-center gap-2 glow-emerald">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
+            Commit Atomic Refactor
+          </button>
+        </div>
+      </div>
+
+      <!-- Rollback Failsafe Switch Card (4 cols) -->
+      <div class="lg:col-span-4 bg-zinc-900 border border-zinc-800 rounded-lg p-5 flex flex-col justify-between">
+        <div>
+          <div class="flex items-center justify-between pb-3 border-b border-zinc-800">
+            <span class="text-xs font-semibold text-rose-300 font-mono">Rollback Failsafe Switch</span>
+            <span id="failsafe-badge" class="px-2 py-0.5 rounded text-[10px] font-mono bg-emerald-950 text-emerald-400 border border-emerald-800 font-semibold">
+              ARMED
+            </span>
+          </div>
+
+          <div class="mt-4 space-y-3">
+            <!-- Toggle control -->
+            <div class="flex items-center justify-between p-3 bg-zinc-950 border border-zinc-800 rounded-md">
+              <div>
+                <div class="text-xs font-semibold text-zinc-200">Auto-Rollback on Test Fail</div>
+                <div class="text-[11px] text-zinc-500 mt-0.5">Instant revert to pre-slice git stash</div>
+              </div>
+              <button onclick="toggleFailsafe()" id="failsafe-toggle" class="w-11 h-6 bg-emerald-600 rounded-full p-1 transition relative flex items-center">
+                <div id="failsafe-dot" class="w-4 h-4 rounded-full bg-white transform translate-x-5 transition-transform duration-200"></div>
+              </button>
+            </div>
+
+            <!-- Stash snapshot details -->
+            <div class="p-3 bg-zinc-950 border border-zinc-800 rounded-md font-mono text-[11px] text-zinc-400 space-y-1">
+              <div class="text-zinc-500">Atomic Snapshot Reference:</div>
+              <div class="text-zinc-200 font-bold truncate">stash@{refactor-pre-harness}</div>
+              <div class="text-[10px] text-emerald-400 flex items-center gap-1">
+                <span>✓ Snapshot verified clean</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="pt-3 mt-4 border-t border-zinc-800">
+          <button onclick="triggerEmergencyRollback()" class="w-full py-2 bg-rose-950/60 hover:bg-rose-900 text-rose-300 font-mono font-semibold text-xs rounded border border-rose-800 transition flex items-center justify-center gap-2">
+            <svg class="w-3.5 h-3.5 text-rose-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path>
+            </svg>
+            Trigger Emergency Rollback
+          </button>
+        </div>
+      </div>
+
+    </section>
+
+    <!-- SECTION 5: Live SSE Operation Feed -->
+    <section class="bg-zinc-900 border border-zinc-800 rounded-lg p-5">
+      <div class="flex items-center justify-between pb-3 border-b border-zinc-800">
+        <div class="flex items-center gap-3">
+          <h3 class="text-sm font-semibold text-zinc-100 flex items-center gap-2">
+            <span class="w-2 h-2 rounded-full bg-sky-400 animate-pulse"></span>
+            Live SSE Telemetry Operation Feed
+          </h3>
+          <span class="text-xs font-mono text-zinc-500">Endpoint: <code class="text-zinc-400">/v1/factory/refactor/events</code></span>
+        </div>
+
+        <div class="flex items-center gap-2 font-mono text-xs">
+          <button onclick="clearTerminal()" class="px-2.5 py-1 bg-zinc-800 hover:bg-zinc-700 text-zinc-300 rounded border border-zinc-700 text-[11px]">
+            Clear Log
+          </button>
+          <button onclick="simulateEventStep()" class="px-2.5 py-1 bg-violet-900 hover:bg-violet-800 text-violet-200 rounded border border-violet-700 text-[11px]">
+            + Simulate SSE Step
+          </button>
+        </div>
+      </div>
+
+      <!-- Terminal Output Container -->
+      <div class="mt-3 bg-zinc-950 border border-zinc-800 rounded-md p-4 font-mono text-xs text-zinc-300 h-52 overflow-y-auto custom-scroll space-y-1.5" id="terminal-feed">
+        <div class="text-zinc-500">[12:00:01.102] <span class="text-sky-400 font-semibold">[SSE_INIT]</span> Connected to ZenOS event bus (connectionId: sse-refactor-991). Channel active.</div>
+        <div>[12:00:01.840] <span class="text-violet-400 font-semibold">[AST_WALK]</span> Scanned workspace: 428 source files analyzed via TypeScript AST Walker.</div>
+        <div>[12:00:02.115] <span class="text-amber-400 font-semibold">[HOTLIST]</span> Identified candidate monolith: <span class="text-zinc-100">src/workflow/tool-harness.js</span> (174 LOC, CCN: 16.0).</div>
+        <div>[12:00:02.508] <span class="text-violet-400 font-semibold">[AST_PARSE]</span> Extracted 4 AST symbol declarations: ToolHarness, executeFileTool, executeShellTool, formatToolOutput.</div>
+        <div>[12:00:03.012] <span class="text-emerald-400 font-semibold">[EXTRACT]</span> Generated target submodule 1: <span class="text-zinc-100">tools/file-ops.js</span> (58 LOC).</div>
+        <div>[12:00:03.220] <span class="text-emerald-400 font-semibold">[EXTRACT]</span> Generated target submodule 2: <span class="text-zinc-100">tools/shell-ops.js</span> (52 LOC).</div>
+        <div>[12:00:03.415] <span class="text-sky-400 font-semibold">[BARREL_REWIRE]</span> Synthesized backward-compatible barrel in <span class="text-zinc-100">tool-harness.js</span> (64 LOC).</div>
+        <div>[12:00:03.780] <span class="text-emerald-400 font-semibold">[SYNTAX_VERIFY]</span> Executed <code class="text-zinc-400">node --check</code> on 3 generated modules. Syntax valid, 0 errors.</div>
+        <div>[12:00:04.140] <span class="text-sky-400 font-semibold">[PROCESS_JAIL]</span> Spawning isolated verification test runner (PGID: 38411, timeout: 5000ms)...</div>
+        <div>[12:00:04.420] <span class="text-emerald-400 font-semibold">[TDD_TEST]</span> Test witness passed: 190 / 190 assertions green in 142ms. Zero regressions.</div>
+        <div>[12:00:04.750] <span class="text-violet-400 font-semibold">[INVARIANT_AUDIT]</span> Auditor verified all submodules &lt; 100 LOC. Public exports contract intact.</div>
+        <div class="text-emerald-400 font-bold">[12:00:05.001] <span class="text-emerald-400">[DUAL_KEY_LOCKED]</span> Consensus achieved (Key 1: TDD Witness + Key 2: Auditor). Refactor armed.</div>
+      </div>
+
+      <div class="mt-2.5 flex items-center justify-between text-[11px] font-mono text-zinc-500">
+        <span>Auto-scroll: <span class="text-emerald-400">ENABLED</span></span>
+        <span>Stream Heartbeat: 1,000ms • Zero dropped frames</span>
+      </div>
+    </section>
+
+    <!-- Footer metadata -->
+    <footer class="pt-4 pb-8 border-t border-zinc-800 text-xs font-mono text-zinc-500 flex flex-col sm:flex-row items-center justify-between gap-2">
+      <div>
+        ZenOS RefactorConsole v1.0 • Autonomous Gate 12 Micro-Architecture
+      </div>
+      <div class="flex items-center gap-4 text-zinc-400">
+        <span>Submodule Threshold: &lt; 100 LOC</span>
+        <span>Strict Ceiling: &lt; 200 LOC</span>
+        <span class="text-emerald-400 font-semibold">100% Zero Dep Node.js</span>
+      </div>
+    </footer>
+
+  </div>
+
+  <!-- Interactive JavaScript Engine -->
+  <script>
+    const candidates = [
+      {
+        path: 'src/workflow/tool-harness.js',
+        loc: 174,
+        ccn: 16.0,
+        density: '18 branches / 100L',
+        risk: 'HIGH (88/100)',
+        riskLevel: 'high',
+        submodules: [
+          { name: 'src/workflow/tools/file-ops.js', loc: 58, role: 'EXTRACTED 1', desc: 'File operations and path validation' },
+          { name: 'src/workflow/tools/shell-ops.js', loc: 52, role: 'EXTRACTED 2', desc: 'Shell command execution and sandboxing' },
+          { name: 'src/workflow/tool-harness.js', loc: 64, role: 'BARREL FACADE', desc: 'Unified exports & backward compatibility' }
+        ],
+        codeBarrel: `// Facade barrel ensuring 100% backward compatibility
+import { executeFileTool } from './tools/file-ops.js';
+import { executeShellTool } from './tools/shell-ops.js';
+
+export class ToolHarness {
+  constructor() {
+    this.handlers = new Map([
+      ['file', executeFileTool],
+      ['shell', executeShellTool]
+    ]);
+  }
+  async execute(name, params) {
+    const fn = this.handlers.get(name);
+    return await fn(params);
+  }
+}
+export { executeFileTool, executeShellTool };`,
+        codeFileOps: `// Pure functional file operations (< 100 LOC)
+import fs from 'node:fs/promises';
+import path from 'node:path';
+
+export async function executeFileTool({ action, filePath, content }) {
+  const resolved = path.resolve(filePath);
+  if (action === 'read') return await fs.readFile(resolved, 'utf-8');
+  if (action === 'write') return await fs.writeFile(resolved, content, 'utf-8');
+  throw new Error(\`Unsupported file action: \${action}\`);
+}`
+      },
+      {
+        path: 'src/workflow/routes-factory.js',
+        loc: 167,
+        ccn: 13.5,
+        density: '14 branches / 100L',
+        risk: 'HIGH (82/100)',
+        riskLevel: 'high',
+        submodules: [
+          { name: 'src/workflow/routes/auth-routes.js', loc: 54, role: 'EXTRACTED 1', desc: 'Authentication and session verification' },
+          { name: 'src/workflow/routes/sse-routes.js', loc: 62, role: 'EXTRACTED 2', desc: 'SSE streaming endpoints and bus hooks' },
+          { name: 'src/workflow/routes-factory.js', loc: 51, role: 'BARREL FACADE', desc: 'Router aggregation matrix' }
+        ],
+        codeBarrel: `// Aggregated HTTP Routes Factory Barrel (< 60 LOC)
+import { registerAuthRoutes } from './routes/auth-routes.js';
+import { registerSseRoutes } from './routes/sse-routes.js';
+
+export function createRoutesFactory(app, eventBus) {
+  registerAuthRoutes(app);
+  registerSseRoutes(app, eventBus);
+  return app;
+}`,
+        codeFileOps: `// SSE streaming route handlers (< 70 LOC)
+export function registerSseRoutes(app, eventBus) {
+  app.get('/v1/factory/refactor/events', (req, res) => {
+    res.setHeader('Content-Type', 'text/event-stream');
+    res.setHeader('Cache-Control', 'no-cache');
+    const unsub = eventBus.subscribe(e => res.write(\`data: \${JSON.stringify(e)}\\n\\n\`));
+    req.on('close', unsub);
+  });
+}`
+      },
+      {
+        path: 'src/workflow/react-agent-loop.js',
+        loc: 160,
+        ccn: 14.0,
+        density: '16 branches / 100L',
+        risk: 'HIGH (79/100)',
+        riskLevel: 'high',
+        submodules: [
+          { name: 'src/workflow/agent/thought-eval.js', loc: 48, role: 'EXTRACTED 1', desc: 'Thought reasoning step evaluator' },
+          { name: 'src/workflow/agent/action-dispatch.js', loc: 56, role: 'EXTRACTED 2', desc: 'Tool dispatcher and sandbox guard' },
+          { name: 'src/workflow/react-agent-loop.js', loc: 56, role: 'BARREL FACADE', desc: 'ReAct state machine orchestrator' }
+        ],
+        codeBarrel: `// ReAct Loop Barrel facade (< 60 LOC)
+import { evaluateThought } from './agent/thought-eval.js';
+import { dispatchAction } from './agent/action-dispatch.js';
+
+export async function runReactLoop(prompt, harness) {
+  let step = 0;
+  while (step++ < 10) {
+    const thought = await evaluateThought(prompt);
+    if (thought.isFinal) return thought.answer;
+    await dispatchAction(thought.action, harness);
+  }
+}`,
+        codeFileOps: `// ReAct Thought evaluator (< 50 LOC)
+export async function evaluateThought(prompt) {
+  // Pure heuristic evaluator with zero external dependencies
+  return { isFinal: false, action: { type: 'scan' } };
+}`
+      },
+      {
+        path: 'src/workflow/cook-runner.js',
+        loc: 148,
+        ccn: 9.2,
+        density: '11 branches / 100L',
+        risk: 'MED (58/100)',
+        riskLevel: 'med',
+        submodules: [
+          { name: 'src/workflow/cook/phase-exec.js', loc: 68, role: 'EXTRACTED 1', desc: 'Phase runner and verification loop' },
+          { name: 'src/workflow/cook-runner.js', loc: 80, role: 'BARREL FACADE', desc: 'Cook plan scheduler' }
+        ],
+        codeBarrel: `// Cook runner facade (< 80 LOC)
+export class CookRunner {
+  constructor(plan) { this.plan = plan; }
+  async run() { return true; }
+}`,
+        codeFileOps: `// Cook Phase Executor (< 70 LOC)
+export async function executePhase(phase) {
+  return { status: 'DONE' };
+}`
+      },
+      {
+        path: 'src/memory/context-compressor.js',
+        loc: 142,
+        ccn: 8.0,
+        density: '9 branches / 100L',
+        risk: 'MED (52/100)',
+        riskLevel: 'med',
+        submodules: [
+          { name: 'src/memory/compress/trimmer.js', loc: 64, role: 'EXTRACTED 1', desc: 'Monospace code block trimmer' },
+          { name: 'src/memory/context-compressor.js', loc: 78, role: 'BARREL FACADE', desc: 'Context pipeline facade' }
+        ],
+        codeBarrel: `// Context compressor facade (< 80 LOC)
+export function compressContext(tokens) { return tokens.slice(-2000); }`,
+        codeFileOps: `// Context Trimmer utility (< 70 LOC)
+export function trimMonospace(str) { return str.trim(); }`
+      },
+      {
+        path: 'src/process/jail-guard.js',
+        loc: 96,
+        ccn: 4.1,
+        density: '6 branches / 100L',
+        risk: 'LOW (18/100)',
+        riskLevel: 'low',
+        submodules: [
+          { name: 'src/process/jail-guard.js', loc: 96, role: 'COMPLIANT', desc: 'Already within safe architectural limits (< 100 LOC)' }
+        ],
+        codeBarrel: `// Already compliant module (96 LOC)`,
+        codeFileOps: `// No extraction required`
+      }
+    ];
+
+    let currentSelectedIdx = 0;
+    let failsafeArmed = true;
+
+    function selectCandidate(idx) {
+      currentSelectedIdx = idx;
+      const c = candidates[idx];
+
+      // Highlight row
+      for (let i = 0; i < 6; i++) {
+        const el = document.getElementById(`row-cand-${i}`);
+        if (el) {
+          if (i === idx) {
+            el.className = "hover:bg-zinc-850/60 transition cursor-pointer bg-violet-950/20";
+          } else {
+            el.className = "hover:bg-zinc-850/60 transition cursor-pointer";
+          }
+        }
+      }
+
+      // Update badge
+      const badge = document.getElementById('active-candidate-badge');
+      if (badge) {
+        badge.innerText = `TARGET: ${c.path.split('/').pop()} (${c.loc} LOC)`;
+      }
+
+      // Switch code preview to barrel
+      switchCodeTab('barrel');
+
+      // Append terminal log
+      logTerminal(`[AST_FOCUS] Active target set to ${c.path} (${c.loc} LOC, CCN: ${c.ccn}).`);
+    }
+
+    function switchCodeTab(type) {
+      const c = candidates[currentSelectedIdx];
+      const preview = document.getElementById('code-preview-pane');
+      const tabBarrel = document.getElementById('tab-barrel');
+      const tabFileOps = document.getElementById('tab-fileops');
+
+      if (!preview) return;
+
+      if (type === 'barrel') {
+        preview.textContent = c.codeBarrel;
+        tabBarrel.className = "px-2 py-0.5 rounded bg-violet-900/60 text-violet-200 border border-violet-700";
+        tabFileOps.className = "px-2 py-0.5 rounded bg-zinc-900 text-zinc-400 hover:text-zinc-200 border border-zinc-800";
+      } else {
+        preview.textContent = c.codeFileOps;
+        tabFileOps.className = "px-2 py-0.5 rounded bg-violet-900/60 text-violet-200 border border-violet-700";
+        tabBarrel.className = "px-2 py-0.5 rounded bg-zinc-900 text-zinc-400 hover:text-zinc-200 border border-zinc-800";
+      }
+    }
+
+    function triggerSliceCandidate(idx) {
+      selectCandidate(idx);
+      const c = candidates[idx];
+      logTerminal(`[AUTO_SLICE_START] Initiated slicing pipeline on ${c.path}...`);
+      setTimeout(() => {
+        logTerminal(`[AST_PARTITION] Extracted ${c.submodules.length - 1} submodules (< 100 LOC each).`);
+      }, 300);
+      setTimeout(() => {
+        logTerminal(`[PROCESS_JAIL] TDD safety witness verifying test invariants...`);
+      }, 700);
+      setTimeout(() => {
+        logTerminal(`[DUAL_KEY_READY] Slice verified clean! Key 1 (TDD) + Key 2 (Auditor) verified.`);
+      }, 1100);
+    }
+
+    function triggerAutoSliceAll() {
+      logTerminal(`[BATCH_SLICING] Starting automated slicing on all 3 High Risk monolith candidates...`);
+      let delay = 300;
+      candidates.filter(c => c.riskLevel === 'high').forEach((cand, i) => {
+        setTimeout(() => {
+          logTerminal(`[BATCH_PROGRESS] Sliced ${cand.path} -> Submodules created with zero breaking changes.`);
+        }, delay);
+        delay += 500;
+      });
+      setTimeout(() => {
+        logTerminal(`[BATCH_COMPLETE] 100% of workspace modules are now compliant with < 200 LOC ceiling!`);
+        const gauge = document.getElementById('gauge-circle');
+        const hp = document.getElementById('health-percentage');
+        if (gauge) gauge.style.strokeDashoffset = '0';
+        if (hp) hp.innerText = '99.8%';
+      }, delay + 200);
+    }
+
+    function simulateWorkspaceScan() {
+      logTerminal(`[WORKSPACE_SCAN] Traversing AST syntax trees across 428 project files...`);
+      setTimeout(() => {
+        logTerminal(`[WORKSPACE_SCAN] Verification complete: 3 candidates require AST partition.`);
+      }, 600);
+    }
+
+    function toggleFailsafe() {
+      failsafeArmed = !failsafeArmed;
+      const dot = document.getElementById('failsafe-dot');
+      const toggle = document.getElementById('failsafe-toggle');
+      const badge = document.getElementById('failsafe-badge');
+
+      if (failsafeArmed) {
+        dot.style.transform = 'translateX(20px)';
+        toggle.className = 'w-11 h-6 bg-emerald-600 rounded-full p-1 transition relative flex items-center';
+        badge.innerText = 'ARMED';
+        badge.className = 'px-2 py-0.5 rounded text-[10px] font-mono bg-emerald-950 text-emerald-400 border border-emerald-800 font-semibold';
+        logTerminal(`[FAILSAFE] Rollback failsafe switch ARMED. Stash snapshot active.`);
+      } else {
+        dot.style.transform = 'translateX(0px)';
+        toggle.className = 'w-11 h-6 bg-zinc-700 rounded-full p-1 transition relative flex items-center';
+        badge.innerText = 'DISARMED';
+        badge.className = 'px-2 py-0.5 rounded text-[10px] font-mono bg-amber-950 text-amber-400 border border-amber-800 font-semibold';
+        logTerminal(`[FAILSAFE] Warning: Rollback failsafe switch DISARMED.`);
+      }
+    }
+
+    function triggerEmergencyRollback() {
+      logTerminal(`[EMERGENCY_ROLLBACK] Triggering atomic revert to stash@{refactor-pre-harness}...`);
+      setTimeout(() => {
+        logTerminal(`[ROLLBACK_SUCCESS] Git working tree restored cleanly. Pre-slice state active.`);
+      }, 500);
+    }
+
+    function commitRefactor() {
+      const btn = document.getElementById('btn-commit-refactor');
+      if (btn) {
+        btn.innerHTML = `<span class="animate-spin mr-1">●</span> Committing...`;
+        setTimeout(() => {
+          btn.innerHTML = `✓ Refactor Committed Cleanly`;
+          btn.className = "px-4 py-2 bg-zinc-800 text-emerald-400 font-semibold rounded text-xs border border-emerald-800 flex items-center justify-center gap-2";
+          logTerminal(`[ATOMIC_COMMIT] Refactor committed: "refactor(workflow): partition tool-harness into submodules"`);
+        }, 800);
+      }
+    }
+
+    function filterCandidates(filter) {
+      const rows = document.querySelectorAll('#candidate-table-body tr');
+      const buttons = ['all', 'high', 'med', 'low'];
+
+      buttons.forEach(b => {
+        const btn = document.getElementById(`btn-filter-${b}`);
+        if (btn) {
+          if (b === filter) {
+            btn.className = "px-2.5 py-1 rounded bg-zinc-800 text-zinc-200 border border-zinc-700 font-semibold";
+          } else {
+            btn.className = "px-2.5 py-1 rounded bg-zinc-950 text-zinc-400 hover:text-zinc-200 border border-zinc-800";
+          }
+        }
+      });
+
+      candidates.forEach((c, idx) => {
+        const row = document.getElementById(`row-cand-${idx}`);
+        if (!row) return;
+        if (filter === 'all' || c.riskLevel === filter) {
+          row.style.display = '';
+        } else {
+          row.style.display = 'none';
+        }
+      });
+    }
+
+    function clearTerminal() {
+      const term = document.getElementById('terminal-feed');
+      if (term) term.innerHTML = `<div class="text-zinc-500">[LOG_CLEARED] Operation feed reset.</div>`;
+    }
+
+    function logTerminal(msg) {
+      const term = document.getElementById('terminal-feed');
+      if (!term) return;
+      const now = new Date();
+      const timeStr = now.toTimeString().split(' ')[0] + '.' + String(now.getMilliseconds()).padStart(3, '0');
+      const div = document.createElement('div');
+      div.innerHTML = `<span class="text-zinc-600">[${timeStr}]</span> ${msg}`;
+      term.appendChild(div);
+      term.scrollTop = term.scrollHeight;
+    }
+
+    let simStep = 0;
+    const simEvents = [
+      `<span class="text-violet-400 font-semibold">[AST_ANALYZE]</span> Inspected symbol table in <span class="text-zinc-100">routes-factory.js</span>. Found 3 route groups.`,
+      `<span class="text-emerald-400 font-semibold">[AUTO_SLICE]</span> Extracted <span class="text-zinc-100">routes/auth-routes.js</span> (54 LOC). Invariant < 100 LOC preserved.`,
+      `<span class="text-sky-400 font-semibold">[TEST_RUNNER]</span> Running tests in ProcessJail... 190 tests passed in 138ms.`,
+      `<span class="text-emerald-400 font-semibold">[DUAL_KEY]</span> Consensus locked. Zero cyclomatic regression.`
+    ];
+
+    function simulateEventStep() {
+      logTerminal(simEvents[simStep % simEvents.length]);
+      simStep++;
+    }
+  </script>
+</body>
+</html>

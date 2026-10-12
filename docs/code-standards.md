@@ -35,3 +35,8 @@
 - All workspace file reads/writes must pass through `path-guard.js`.
 - Destructive commands must be intercepted by `command-guard.js`.
 - Consequential actions require human approval via `approval-gate.js`.
+
+### 6. Refactoring Engine & Facade Barrel Standards (Gate 12)
+- Monolith decomposition must output submodules strictly < 100 LOC.
+- Decomposed modules must preserve backwards compatibility via facade barrel exports (`export * from ...` or `module.exports = { ... }`).
+- Slicing operations must execute atomic pre-flight backups with rollback on test failure or LOC violation.

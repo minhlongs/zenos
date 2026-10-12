@@ -76,6 +76,21 @@ ZenOS is an audit-first, local-first personal AI workstation engineered for Appl
 4. **`SwarmConsole.tsx` (Operator Portal)**:
    - Real-time Next.js console displaying 4-role pipeline progression, dual-key witness indicators, artifact viewer, and live SSE streaming logs.
 
+## Gate 12 Autonomous Refactoring Engine & Complexity Heatmaps
+
+1. **`complexity-analyzer.js` (Pure Node.js Metric Scanner)**:
+   - Evaluates line breakdown (code/comment/blank), branching density, and monolith risk index without third-party dependencies.
+   - Computes workspace-wide health score and highlights files approaching the 200 LOC limit.
+
+2. **`ast-slicer.js` (Semantic Code Decomposition & Facades)**:
+   - Slices cohesive function and helper blocks into focused submodules (< 100 LOC).
+   - Generates backward-compatible facade barrel files re-exporting original APIs to ensure 0 import breakage.
+   - Integrates with `ProcessJail` and `ConsensusGate` to provide atomic rollback upon test failure or regression.
+
+3. **`routes-refactor.js` & `RefactorConsole.tsx`**:
+   - `/v1/factory/refactor/*` REST endpoints for analysis, planning, and execution with real-time SSE broadcasts.
+   - Cyber-minimalist dashboard for monitoring codebase health, inspecting AST decompositions, and triggering self-healing.
+
 ## Invariants
 - **0 external npm dependencies** in proxy (100% native Node.js).
 - **< 200 LOC per file** across all source and test modules.

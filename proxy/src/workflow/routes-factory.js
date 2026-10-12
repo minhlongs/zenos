@@ -9,6 +9,7 @@ const { ProcessJail } = require('./process-jail');
 const { ReactAgentLoop } = require('./react-agent-loop');
 const { createEvalRouter } = require('./routes-eval');
 const { createSwarmRouter } = require('./routes-swarm');
+const { createRefactorRouter } = require('./routes-refactor');
 
 function createFactoryRouter(options = {}) {
   const router = express.Router();
@@ -146,6 +147,11 @@ function createFactoryRouter(options = {}) {
   }));
 
   router.use('/swarm', createSwarmRouter({
+    ...options,
+    broadcast
+  }));
+
+  router.use('/refactor', createRefactorRouter({
     ...options,
     broadcast
   }));

@@ -19,7 +19,13 @@
 - **Diagnostic Extractor**: Token-efficient error stack localization with 4-line context radius.
 - **Reflexion Loop**: Multi-turn critique-revision self-repair loop with SQLite metric tracking (`eval_runs`, `eval_cases`).
 
-### 4. Process Sandboxing & Isolation (Gate 8 & 9)
+### 4. Autonomous Code Refactoring & Complexity Engine (Gate 12)
+- **Complexity Analyzer**: Pure Node.js lexical metric engine calculating LOC, branching density, and monolith risk ratings.
+- **AST Slicer & Facade Generator**: Regex/AST-lite code extractor decomposing monoliths into focused submodules (< 100 LOC) and wiring backward-compatible barrel exports.
+- **TDD Safety & Rollback**: Automatic pre-refactor snapshotting, ProcessJail test verification, and instantaneous rollback on regressions.
+- **RefactorConsole**: Cyber-minimalist dashboard for workspace health, monolith hotlists, and live SSE operations.
+
+### 5. Process Sandboxing & Isolation (Gate 8 & 9)
 - **Process Jail**: Spawns detached PGID process trees with recursive kill escalation (`SIGTERM`/`SIGKILL`).
 - **Agent Supervisor**: 5s SQLite heartbeat daemon with boot-time crash reconciliation.
 - **Autonomous Tool Harness**: Native 5-tool developer suite (`read_file`, `write_file`, `edit_file`, `list_files`, `execute_command`).
