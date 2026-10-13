@@ -49,3 +49,11 @@
   - **Key 2**: Invariant compliance audit (< 200 LOC ceiling on all touched files, blast radius safe/caution).
 - Worktree IDs must be strictly sanitized against path traversal (`[^a-zA-Z0-9_-]` replaced).
 - Worktree directories must always have `.gitignore` protecting them from unintended repository tracking.
+
+### 8. Architectural Brainstorming & Socratic Gating Standards (Gate 14)
+- Deep refactoring cycles must pass through `/brainstorming --deep` prior to code modifications.
+- Multi-perspective dialectic debate must involve Advocate, Adversary, and Synthesizer personas.
+- Every refactoring strategy candidate must be scored with the Architectural Risk Index ($ARI$):
+  $$ARI = 0.35 \cdot BR + 0.25 \cdot CC + 0.25 \cdot IR + 0.15 \cdot CP$$
+- Strategies exceeding $ARI \ge 60$ (CRITICAL) require explicit Dual-Key override before dispatch to `/zen`.
+- Candidate strategies must retain backward compatibility and preserve zero-external-dependency constraints.

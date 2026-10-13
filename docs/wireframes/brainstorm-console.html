@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>ZenOS Gate 14 BrainstormConsole Wireframe</title>
+  <style>
+    body { background-color: #020617; color: #f8fafc; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, monospace; margin: 0; padding: 24px; }
+    .container { max-width: 1200px; margin: 0 auto; display: flex; flex-direction: column; gap: 20px; }
+    .header { border-bottom: 1px solid #1e293b; padding-bottom: 16px; display: flex; justify-content: space-between; align-items: center; }
+    .title { font-size: 20px; font-weight: bold; color: #38bdf8; display: flex; align-items: center; gap: 10px; }
+    .grid { display: grid; grid-template-columns: 7fr 5fr; gap: 20px; }
+    .card { background: #0f172a; border: 1px solid #1e293b; border-radius: 8px; padding: 18px; }
+    .card-title { font-size: 14px; text-transform: uppercase; letter-spacing: 0.05em; color: #94a3b8; margin-bottom: 14px; font-weight: 600; }
+    .debate-stream { display: flex; flex-direction: column; gap: 12px; height: 380px; overflow-y: auto; }
+    .bubble { padding: 12px; border-radius: 6px; font-size: 13px; line-height: 1.5; font-family: monospace; border-left: 4px solid; }
+    .advocate { background: #064e3b33; border-color: #10b981; color: #a7f3d0; }
+    .adversary { background: #7f1d1d33; border-color: #f43f5e; color: #fecdd3; }
+    .synthesizer { background: #08334433; border-color: #06b6d4; color: #bae6fd; }
+    .strategies { display: flex; flex-direction: column; gap: 12px; }
+    .strat-item { background: #1e293b; border: 1px solid #334155; border-radius: 6px; padding: 14px; cursor: pointer; transition: 0.2s; }
+    .strat-item:hover { border-color: #38bdf8; }
+    .strat-header { display: flex; justify-content: space-between; font-weight: bold; margin-bottom: 8px; }
+    .ari-badge { background: #0284c7; color: white; padding: 2px 8px; border-radius: 4px; font-size: 12px; }
+    .btn { background: #0284c7; color: white; border: none; padding: 8px 16px; border-radius: 4px; font-weight: bold; cursor: pointer; }
+    .btn-emerald { background: #059669; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <div class="title"><span>🧠</span> ZenOS BrainstormConsole (/brainstorming --deep)</div>
+      <div><button class="btn btn-emerald">+ New Architectural Session</button></div>
+    </div>
+    <div class="grid">
+      <div class="card">
+        <div class="card-title">Socratic Debate Feed (Advocate vs Adversary vs Synthesizer)</div>
+        <div class="debate-stream">
+          <div class="bubble advocate"><strong>[ADVOCATE]</strong> Proposing modular facade extraction for monolith. Reduces coupling and boosts testing velocity.</div>
+          <div class="bubble adversary"><strong>[ADVERSARY]</strong> Warning: Module has 14 dependents. Blast radius index reaches 48. Risk of circular imports on ESM bridge.</div>
+          <div class="bubble synthesizer"><strong>[SYNTHESIZER]</strong> Consensus reached: Apply surgical sub-slicing with backward-compatible barrel exports. ARI Score: 24 (SAFE).</div>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-title">Pareto-Optimal Refactoring Candidates</div>
+        <div class="strategies">
+          <div class="strat-item">
+            <div class="strat-header"><span>Strategy 1: Surgical Facade</span><span class="ari-badge">ARI: 24</span></div>
+            <div style="font-size: 12px; color: #94a3b8; margin-bottom: 8px;">Blast Radius: 18 | Complexity Δ: -42% | Touched Files: 3</div>
+            <button class="btn" style="width: 100%; font-size: 12px;">Dispatch to /zen</button>
+          </div>
+          <div class="strat-item">
+            <div class="strat-header"><span>Strategy 2: Event Decoupling</span><span class="ari-badge" style="background: #e11d48;">ARI: 58</span></div>
+            <div style="font-size: 12px; color: #94a3b8; margin-bottom: 8px;">Blast Radius: 64 | Complexity Δ: -60% | Touched Files: 8</div>
+            <button class="btn" style="width: 100%; font-size: 12px;" disabled>Requires Dual-Key Override</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</body>
+</html>

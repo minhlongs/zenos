@@ -7,10 +7,12 @@ const { GoalManager } = require('./goal-manager');
 const { AgentSupervisor } = require('./agent-supervisor');
 const { ProcessJail } = require('./process-jail');
 const { ReactAgentLoop } = require('./react-agent-loop');
+const { createGoalRouter } = require('./routes-goal');
 const { createEvalRouter } = require('./routes-eval');
 const { createSwarmRouter } = require('./routes-swarm');
 const { createRefactorRouter } = require('./routes-refactor');
 const { createWorktreeRouter } = require('./routes-worktree');
+const { createBrainstormRouter } = require('./routes-brainstorm');
 
 function createFactoryRouter(options = {}) {
   const router = express.Router();
@@ -50,51 +52,7 @@ function createFactoryRouter(options = {}) {
     return res.status(result.success ? 200 : 422).json(result);
   });
 
-  router.post('/goal', (req, res) => {
-    const { goalId, title, spec } = req.body || {};
-    const id = goalId || `goal_${Date.now()}`;
-    try {
-      const goal = goalManager.startGoal(id, { title, spec });
-      agentSupervisor.registerActiveTask(id, { goalId: id });
-      return res.status(201).json({ goal });
-    } catch (err) {
-      return res.status(400).json({ error: err.message });
-    }
-  });
-
-  router.get('/goal/:id', (req, res) => {
-    const goal = goalManager.getStatus(req.params.id);
-    if (!goal) return res.status(404).json({ error: 'Goal not found' });
-    return res.status(200).json({ goal });
-  });
-
-  router.post('/goal/:id/pause', (req, res) => {
-    try {
-      const goal = goalManager.pause(req.params.id, req.body?.reason);
-      return res.status(200).json({ goal });
-    } catch (err) {
-      return res.status(400).json({ error: err.message });
-    }
-  });
-
-  router.post('/goal/:id/resume', (req, res) => {
-    try {
-      const goal = goalManager.resume(req.params.id);
-      return res.status(200).json({ goal });
-    } catch (err) {
-      return res.status(400).json({ error: err.message });
-    }
-  });
-
-  router.post('/goal/:id/abort', (req, res) => {
-    try {
-      const goal = goalManager.abort(req.params.id, req.body?.reason);
-      agentSupervisor.unregisterActiveTask(req.params.id, { reason: 'aborted' });
-      return res.status(200).json({ goal });
-    } catch (err) {
-      return res.status(400).json({ error: err.message });
-    }
-  });
+  router.use('/goal', createGoalRouter({ goalManager, agentSupervisor }));
 
   router.get('/supervisor/status', (req, res) => {
     return res.status(200).json({ status: 'ok', supervisor: agentSupervisor.getStatus() });
@@ -127,7 +85,6 @@ function createFactoryRouter(options = {}) {
     loop.on('agent_error', (e) => broadcast('agent_error', e));
 
     const taskId = `agent_${Date.now()}`;
-    // Run asynchronously
     loop.run({ prompt, taskId, maxIterations }).catch(() => {});
     return res.status(202).json({ taskId, status: 'running' });
   });
@@ -142,25 +99,11 @@ function createFactoryRouter(options = {}) {
     return res.status(200).json({ task, checkpoints });
   });
 
-  router.use('/eval', createEvalRouter({
-    ...options,
-    broadcast
-  }));
-
-  router.use('/swarm', createSwarmRouter({
-    ...options,
-    broadcast
-  }));
-
-  router.use('/refactor', createRefactorRouter({
-    ...options,
-    broadcast
-  }));
-
-  router.use('/worktree', createWorktreeRouter({
-    ...options,
-    broadcast
-  }));
+  router.use('/eval', createEvalRouter({ ...options, broadcast }));
+  router.use('/swarm', createSwarmRouter({ ...options, broadcast }));
+  router.use('/refactor', createRefactorRouter({ ...options, broadcast }));
+  router.use('/worktree', createWorktreeRouter({ ...options, broadcast }));
+  router.use('/brainstorm', createBrainstormRouter({ ...options, broadcast }));
 
   router.get('/events', (req, res) => {
     res.setHeader('Content-Type', 'text/event-stream');

@@ -15,6 +15,7 @@ import { EvalConsole } from '../components/EvalConsole';
 import { SwarmConsole } from '../components/SwarmConsole';
 import { RefactorConsole } from '../components/RefactorConsole';
 import { WorktreeConsole } from '../components/WorktreeConsole';
+import { BrainstormConsole } from '../components/BrainstormConsole';
 import { useFactoryEvents } from '../hooks/useFactoryEvents';
 import { RefreshCw, Activity, Cpu } from 'lucide-react';
 
@@ -94,6 +95,7 @@ export default function DashboardPage() {
 
       {tab === 'factory' ? (
         <div className="space-y-6">
+          <BrainstormConsole />
           <SwarmConsole />
           <RefactorConsole />
           <WorktreeConsole />
