@@ -14,6 +14,7 @@ import { AgentConsole } from '../components/AgentConsole';
 import { EvalConsole } from '../components/EvalConsole';
 import { SwarmConsole } from '../components/SwarmConsole';
 import { RefactorConsole } from '../components/RefactorConsole';
+import { WorktreeConsole } from '../components/WorktreeConsole';
 import { useFactoryEvents } from '../hooks/useFactoryEvents';
 import { RefreshCw, Activity, Cpu } from 'lucide-react';
 
@@ -95,6 +96,7 @@ export default function DashboardPage() {
         <div className="space-y-6">
           <SwarmConsole />
           <RefactorConsole />
+          <WorktreeConsole />
           <AgentConsole />
           <EvalConsole />
           <SupervisorMonitor />

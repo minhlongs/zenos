@@ -15,6 +15,8 @@
   - Critical / Circuit Breaker / Failsafe Rollback: `#fb7185` (rose-400) & `#4c0519` (rose-950)
   - Telemetry Stream / Live SSE / PGID Monitor: `#38bdf8` (sky-400) & `#082f49` (sky-950)
   - Refactoring & AST Slicing Accent: `#2dd4bf` (teal-400) & `#042f2e` (teal-950)
+  - Git Worktree & Branch Isolation Accent: `#3b82f6` (blue-500) & `#172554` (blue-950)
+  - Blast Radius Risk & Impact Accent: `#f59e0b` (amber-500) & `#451a03` (amber-950)
 
 ## 2. Typography & Hierarchy
 - **Primary Font**: `Inter`, system-ui, -apple-system, sans-serif (bilingual VN+EN support)
@@ -37,6 +39,10 @@
   - **AST Dependency & Slicing Visualizer**: Interactive split view showing Original Monolith AST symbols mapped to sliced submodules (< 100 LOC) and backwards-compatible barrel facade.
   - **Dual-Key Safety Witness Gauge**: Key 1 (Deterministic TDD Pass) and Key 2 (Adversarial Invariant Audit) with instantaneous rollback switch.
   - **Live SSE Operation Feed**: Real-time streaming terminal log displaying extraction, syntax verification, test run, and barrel rewiring with event filter controls.
+- **Worktree & Blast Radius Console (Gate 13)**:
+  - **Worktree Active Fleet Tracker**: Ephemeral worktree cards with branch name, absolute path, commit hash, created timestamp, and one-click "Purge" or "Promote" buttons.
+  - **Blast Radius Interactive Cartography**: Interactive node card with Upstream Callers (Fan-in), Downstream Deps (Fan-out), Max Transitive Depth, and numerical Blast Radius index with color-coded safety levels (`SAFE`, `CAUTION`, `CRITICAL`).
+  - **Automated PR Staging Dialog**: Conventional commit generator preview, changed files inventory, Dual-Key consensus checklist, and instant branch promotion trigger.
 - **Process Group Monitor**: Monospace PID / PGID badge with live uptime meter and dead-man switch countdown.
 - **Crash Recovery Pill**: Status indicator showing `SYNCHRONIZED` (emerald) or `RECONCILING` (amber).
 - **Buttons**:

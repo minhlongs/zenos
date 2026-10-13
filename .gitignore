@@ -33,6 +33,7 @@ env/
 .agentkit/.lock
 
 # Runtime & Databases
+.zenos/
 logs/
 *.log
 *.jsonl

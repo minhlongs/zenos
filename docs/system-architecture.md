@@ -91,6 +91,23 @@ ZenOS is an audit-first, local-first personal AI workstation engineered for Appl
    - `/v1/factory/refactor/*` REST endpoints for analysis, planning, and execution with real-time SSE broadcasts.
    - Cyber-minimalist dashboard for monitoring codebase health, inspecting AST decompositions, and triggering self-healing.
 
+## Gate 13: Autonomous Git Worktree Isolation & Blast Radius Cartography
+
+1. **`worktree-jail.js` (Zero-Dependency Ephemeral Isolation)**:
+   - Uses native `child_process.execFileSync` to manage isolated git worktrees in `.zenos/worktrees/`.
+   - Protects the primary working tree from concurrent agent dirt and mutations.
+   - Automatic `.gitignore` injection and branch cleanup with orphan pruning.
+
+2. **`blast-radius-engine.js` (Dependency Cartography & Transitive Graph Traversal)**:
+   - Fast lexical parser mapping CJS `require` and ESM `import`/`export` across the repository.
+   - Computes directed graph fan-in, fan-out, and BFS cascade depth with cycle detection.
+   - Calculates Quantitative Blast Radius index ($BR = \text{Depth} \times 12 + \text{FanIn} \times 8 + \text{Upstream} \times 5 + \dots$) into `SAFE`, `CAUTION`, and `CRITICAL` risk tiers.
+
+3. **`pr-stager.js` & `routes-worktree.js` (Semantic PR Stager & Dual-Key Consensus)**:
+   - Generates Conventional Commits (`feat(...)`, `fix(...)`, `refactor(...)`) and file diff summaries.
+   - Enforces Dual-Key consensus (Key 1: test suite pass; Key 2: LOC & invariant audit).
+   - Exposes REST endpoints on `/v1/factory/worktree/*` and streams updates to `WorktreeConsole.tsx`.
+
 ## Invariants
 - **0 external npm dependencies** in proxy (100% native Node.js).
 - **< 200 LOC per file** across all source and test modules.

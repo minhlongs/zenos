@@ -25,7 +25,13 @@
 - **TDD Safety & Rollback**: Automatic pre-refactor snapshotting, ProcessJail test verification, and instantaneous rollback on regressions.
 - **RefactorConsole**: Cyber-minimalist dashboard for workspace health, monolith hotlists, and live SSE operations.
 
-### 5. Process Sandboxing & Isolation (Gate 8 & 9)
+### 5. Git Worktree Isolation, Blast Radius & PR Staging (Gate 13)
+- **Worktree Jail (`WorktreeJail`)**: Zero-dependency `git worktree` isolation harness spawning ephemeral branch worktrees at `.zenos/worktrees/<id>` or `/tmp/zenos-worktrees/<id>`.
+- **Blast Radius Cartography (`BlastRadiusEngine`)**: Zero-dependency lexical dependency graph mapper computing upstream fan-in, downstream fan-out, transitive cascade depth, cycle detection, and quantitative risk scores ($BR = \text{Depth} \times \text{Coupling} + \text{ExposureMultiplier}$).
+- **Automated PR Stager (`PrStager`)**: Conventional Commit authoring, automated branch preparation, diff summarization, and Dual-Key consensus gating for promotion to `main`.
+- **Worktree Console (`WorktreeConsole`)**: Real-time Next.js console displaying active ephemeral worktrees, visual blast radius cascade maps, and one-click PR staging.
+
+### 6. Process Sandboxing & Isolation (Gate 8 & 9)
 - **Process Jail**: Spawns detached PGID process trees with recursive kill escalation (`SIGTERM`/`SIGKILL`).
 - **Agent Supervisor**: 5s SQLite heartbeat daemon with boot-time crash reconciliation.
 - **Autonomous Tool Harness**: Native 5-tool developer suite (`read_file`, `write_file`, `edit_file`, `list_files`, `execute_command`).

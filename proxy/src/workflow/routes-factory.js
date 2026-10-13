@@ -10,6 +10,7 @@ const { ReactAgentLoop } = require('./react-agent-loop');
 const { createEvalRouter } = require('./routes-eval');
 const { createSwarmRouter } = require('./routes-swarm');
 const { createRefactorRouter } = require('./routes-refactor');
+const { createWorktreeRouter } = require('./routes-worktree');
 
 function createFactoryRouter(options = {}) {
   const router = express.Router();
@@ -152,6 +153,11 @@ function createFactoryRouter(options = {}) {
   }));
 
   router.use('/refactor', createRefactorRouter({
+    ...options,
+    broadcast
+  }));
+
+  router.use('/worktree', createWorktreeRouter({
     ...options,
     broadcast
   }));

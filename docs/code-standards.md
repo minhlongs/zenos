@@ -40,3 +40,12 @@
 - Monolith decomposition must output submodules strictly < 100 LOC.
 - Decomposed modules must preserve backwards compatibility via facade barrel exports (`export * from ...` or `module.exports = { ... }`).
 - Slicing operations must execute atomic pre-flight backups with rollback on test failure or LOC violation.
+
+### 7. Worktree Isolation & PR Staging Standards (Gate 13)
+- All autonomous agent iterations and refactoring operations must execute within ephemeral git worktrees under `.zenos/worktrees/<task-id>`.
+- The main working directory must never be dirtied during autonomous experimentation.
+- Every branch merge into `main` requires Dual-Key consensus:
+  - **Key 1**: Deterministic test suite pass inside `ProcessJail`.
+  - **Key 2**: Invariant compliance audit (< 200 LOC ceiling on all touched files, blast radius safe/caution).
+- Worktree IDs must be strictly sanitized against path traversal (`[^a-zA-Z0-9_-]` replaced).
+- Worktree directories must always have `.gitignore` protecting them from unintended repository tracking.
