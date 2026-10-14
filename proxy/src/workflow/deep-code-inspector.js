@@ -27,17 +27,19 @@ function extractSeamNames(source, relPath) {
 
 class DeepCodeInspector {
   constructor(options = {}) {
-    this.rootDir = path.resolve(options.rootDir || process.cwd());
+    const rawRoot = path.resolve(options.rootDir || process.cwd());
+    this.rootDir = fs.existsSync(rawRoot) ? fs.realpathSync(rawRoot) : rawRoot;
     this.blastEngine = options.blastEngine || new BlastRadiusEngine({ rootDir: this.rootDir });
   }
 
   inspectFile(targetFile = 'proxy/src/router.js', cachedGraph = null) {
     const normalizedInput = String(targetFile || 'proxy/src/router.js').trim();
-    const absPath = path.isAbsolute(normalizedInput)
+    const rawAbs = path.isAbsolute(normalizedInput)
       ? normalizedInput
       : path.resolve(this.rootDir, normalizedInput);
+    const absPath = fs.existsSync(rawAbs) ? fs.realpathSync(rawAbs) : rawAbs;
     const inWorkspace = absPath === this.rootDir || absPath.startsWith(this.rootDir + path.sep);
-    const relPath = inWorkspace ? (path.relative(this.rootDir, absPath) || normalizedInput) : normalizedInput;
+    const relPath = inWorkspace ? (path.relative(this.rootDir, absPath) || normalizedInput) : path.basename(normalizedInput);
     const exists = inWorkspace && fs.existsSync(absPath) && fs.statSync(absPath).isFile();
 
     let comp = {
@@ -124,7 +126,10 @@ class DeepCodeInspector {
   }
 
   discoverHotspots(limit = 5, scanDir = null) {
-    const targetDir = scanDir ? path.resolve(this.rootDir, scanDir) : this.rootDir;
+    const rawTarget = scanDir ? path.resolve(this.rootDir, String(scanDir)) : this.rootDir;
+    const resolvedTarget = fs.existsSync(rawTarget) ? fs.realpathSync(rawTarget) : this.rootDir;
+    const inWorkspace = resolvedTarget === this.rootDir || resolvedTarget.startsWith(this.rootDir + path.sep);
+    const targetDir = inWorkspace ? resolvedTarget : this.rootDir;
     const dirReport = analyzeDirectory(targetDir);
     const graph = this.blastEngine.buildGraph(targetDir);
 

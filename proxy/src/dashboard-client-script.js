@@ -3,6 +3,14 @@
 function getDashboardClientScript() {
   return `
     const eventsLog = document.getElementById('events-log');
+    function esc(val) {
+      return String(val ?? '')
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#39;');
+    }
     function logEvent(text) {
       const el = document.createElement('div');
       el.className = 'event-line';
@@ -27,14 +35,14 @@ function getDashboardClientScript() {
       }
       tbody.innerHTML = list.map(item => \`
         <tr>
-          <td>\${item.id}</td>
-          <td><b>\${item.action}</b></td>
-          <td><code>\${item.command || item.context || 'N/A'}</code></td>
-          <td><span style="color: \${item.status === 'pending' ? 'var(--warning)' : 'var(--text-muted)'}">\${item.status}</span></td>
+          <td>\${esc(item.id)}</td>
+          <td><b>\${esc(item.action)}</b></td>
+          <td><code>\${esc(item.command || item.context || 'N/A')}</code></td>
+          <td><span style="color: \${item.status === 'pending' ? 'var(--warning)' : 'var(--text-muted)'}">\${esc(item.status)}</span></td>
           <td>
             \${item.status === 'pending' ? \`
-              <button class="btn btn-approve" onclick="resolveApproval('\${item.id}', '\${item.token}', true)">Approve</button>
-              <button class="btn btn-reject" onclick="resolveApproval('\${item.id}', '\${item.token}', false)">Reject</button>
+              <button class="btn btn-approve" onclick="resolveApproval('\${esc(item.id)}', '\${esc(item.token)}', true)">Approve</button>
+              <button class="btn btn-reject" onclick="resolveApproval('\${esc(item.id)}', '\${esc(item.token)}', false)">Reject</button>
             \` : 'Resolved'}
           </td>
         </tr>

@@ -26,7 +26,7 @@ describe('Gate 15 Phase 1: DeepCodeInspector & Dashboard Slicing', () => {
     assert.ok(report.splitBlueprint.extractedSubmodules.length >= 2);
   });
 
-  it('gracefully handles synthetic / non-existent file paths with fallback metrics', () => {
+  it('gracefully handles synthetic / non-existent and out-of-workspace file paths', () => {
     const inspector = new DeepCodeInspector({ rootDir: REPO_ROOT });
     const report = inspector.inspectFile('proxy/src/synthetic-non-existent-module.js');
 
@@ -34,6 +34,9 @@ describe('Gate 15 Phase 1: DeepCodeInspector & Dashboard Slicing', () => {
     assert.equal(report.targetFile, 'proxy/src/synthetic-non-existent-module.js');
     assert.ok(report.totalLines > 0);
     assert.ok(report.splitBlueprint.extractedSubmodules.every((m) => m.estimatedLoc < 120));
+
+    const traversal = inspector.inspectFile('../../../../etc/hosts');
+    assert.equal(traversal.exists, false);
   });
 
   it('proposeSeams guarantees every extracted submodule is strictly < 120 LOC', () => {
@@ -66,6 +69,7 @@ describe('Gate 15 Phase 1: DeepCodeInspector & Dashboard Slicing', () => {
     const script = getDashboardClientScript();
 
     assert.ok(script.includes("EventSource('/v1/telemetry/events')"));
+    assert.ok(script.includes('function esc(val)'));
     assert.ok(html.includes(script));
     for (const id of [
       'active-jails',
