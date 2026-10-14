@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Gate 15 Wireframe — Deep Code-Introspective Brainstorming (/brainstorming --deep)</title>
+  <style>
+    body { background: #020617; color: #f8fafc; font-family: ui-monospace, SFMono-Regular, Menlo, monospace; padding: 24px; }
+    .panel { background: #0f172a; border: 1px solid #1e293b; border-radius: 8px; padding: 20px; max-width: 1120px; margin: 0 auto; }
+    .header { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #1e293b; padding-bottom: 14px; margin-bottom: 16px; }
+    .badge-deep { background: #2e1065; color: #c4b5fd; border: 1px solid #7c3aed; padding: 3px 8px; border-radius: 4px; font-size: 11px; }
+    .telemetry-bar { display: flex; gap: 12px; background: #020617; border: 1px solid #1e293b; padding: 10px 14px; border-radius: 6px; margin-bottom: 16px; font-size: 12px; color: #38bdf8; }
+    .grid { display: grid; grid-template-columns: 7fr 5fr; gap: 16px; }
+    .box { background: #020617; border: 1px solid #1e293b; border-radius: 6px; padding: 14px; }
+    .turn { padding: 10px; border-radius: 4px; margin-bottom: 8px; font-size: 12px; border-left: 4px solid; }
+    .advocate { background: rgba(6, 78, 59, 0.25); border-color: #10b981; color: #a7f3d0; }
+    .adversary { background: rgba(136, 19, 55, 0.25); border-color: #f43f5e; color: #fecdd3; }
+    .cross { background: rgba(76, 29, 149, 0.25); border-color: #8b5cf6; color: #ddd6fe; }
+    .rebuttal { background: rgba(120, 53, 15, 0.25); border-color: #f59e0b; color: #fde68a; }
+    .synth { background: rgba(8, 51, 68, 0.25); border-color: #06b6d4; color: #a5f3fc; }
+    .blueprint { margin-top: 12px; border: 1px dashed #334155; padding: 10px; border-radius: 6px; font-size: 11px; color: #cbd5e1; }
+  </style>
+</head>
+<body>
+  <div class="panel">
+    <div class="header">
+      <div>
+        <strong>Gate 15: Deep Code-Introspective Brainstorming (/brainstorming --deep)</strong>
+        <span class="badge-deep">--deep AST Introspection Active</span>
+      </div>
+      <button style="background:#7c3aed;color:#fff;border:none;padding:6px 12px;border-radius:4px;font-size:12px;">Auto-Scan &amp; Brainstorm Hotspots</button>
+    </div>
+    <div class="telemetry-bar">
+      <span>Target: proxy/src/dashboard-html.js</span>
+      <span>| LOC: 189</span>
+      <span>| CCN Branches: 14</span>
+      <span>| Fan-In: 2 / Fan-Out: 0</span>
+      <span>| Detected Seams: 2</span>
+    </div>
+    <div class="grid">
+      <div class="box">
+        <h4>5-Turn Socratic Cross-Examination Feed</h4>
+        <div class="turn advocate">[ADVOCATE] Propose slicing embedded client JS from HTML layout shell.</div>
+        <div class="turn adversary">[ADVERSARY] Caution: SSE EventSource &amp; DOM IDs must stay 100% intact.</div>
+        <div class="turn cross">[CROSS_EXAMINER] Socratic Seam Audit: Does extracting dashboard-client-script.js keep both files &lt; 110 LOC?</div>
+        <div class="turn rebuttal">[REBUTTAL] Confirmed: HTML shell drops to ~98 LOC and client script is ~95 LOC with zero broken DOM selectors.</div>
+        <div class="turn synth">[SYNTHESIZER] Consensus: Surgical Facade Extraction (ARI 14.5 SAFE).</div>
+      </div>
+      <div class="box">
+        <h4>Pareto Strategies &amp; Module Split Blueprint</h4>
+        <div class="blueprint">
+          <div><strong>Facade:</strong> proxy/src/dashboard-html.js (~98 LOC)</div>
+          <div><strong>Submodule 1:</strong> proxy/src/dashboard-client-script.js (~95 LOC) — SSE &amp; DOM handlers</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</body>
+</html>

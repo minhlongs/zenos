@@ -63,6 +63,14 @@ Solo software founders and technical architects operating on macOS (M1/M2/M3/M4 
 - TDD-verified atomic execution with instant rollback on test failure or LOC violation.
 - Next.js RefactorConsole dashboard with health gauges, heatmaps, and live SSE streaming logs.
 
+### FR-11: Deep Code-Introspective Brainstorming & Hotspot Auto-Refactor Pipeline (`DeepCodeInspector` & `/brainstorming --deep`)
+- Live workspace AST/lexical seam extraction and dependency blast radius calculations via `DeepCodeInspector`.
+- 5-turn Socratic Cross-Examination pipeline (`ADVOCATE` $\rightarrow$ `ADVERSARY` $\rightarrow$ `CROSS_EXAMINER` $\rightarrow$ `REBUTTAL` $\rightarrow$ `SYNTHESIZER`).
+- Automated workspace hotspot scanning and batch brainstorming (`POST /v1/factory/brainstorm/auto-hotspots`).
+- Proactive monolith slicing of core UI and proxy modules strictly adhering to `< 200 LOC`.
+- Modular Next.js `BrainstormConsole` and `BrainstormStrategyPanel` featuring live telemetry, `--deep` toggles, and submodule split blueprint previews.
+- Verified test suite with 243/243 passing tests across 30 suites.
+
 ## Non-Functional Requirements
 - Zero external proxy dependencies (pure native Node.js).
 - 100% green test pass rate.

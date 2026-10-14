@@ -32,3 +32,21 @@ ZenOS is an autonomous personal AI workstation and TDD orchestration platform op
 3. **`routes-brainstorm.js` & `BrainstormConsole.tsx`**:
    - Mounted at `/v1/factory/brainstorm/*` (`/start`, `/sessions`, `/session/:id`, `/dispatch-zen`).
    - Cyber-minimalist dark slate Next.js dashboard featuring live turn-by-turn debate transcript, Pareto strategy cards, and one-click `/zen` dispatch.
+
+---
+
+## Gate 15: Deep Code-Introspective Brainstorming & Hotspot Auto-Refactor Pipeline (`/brainstorming --deep`)
+1. **`DeepCodeInspector` (`proxy/src/workflow/deep-code-inspector.js`)**:
+   - Unites `ComplexityEngine` and `BlastRadiusEngine` to inspect real workspace files, extract AST/lexical seams, and calculate monolith scores.
+   - `proposeSeams(targetFile)`: Generates precise submodule split blueprints (< 120 LOC) with designated facade paths.
+   - `discoverHotspots(limit)`: Ranks top workspace files by risk and dependency cascade depth.
+2. **5-Turn Socratic Cross-Examination (`proxy/src/workflow/debate-protocol.js` & `brainstorm-engine.js`)**:
+   - Upgraded to 5-turn dialectic pipeline: `ADVOCATE` $\rightarrow$ `ADVERSARY` $\rightarrow$ `CROSS_EXAMINER` $\rightarrow$ `REBUTTAL` $\rightarrow$ `SYNTHESIZER`.
+   - `autoBrainstormHotspots(limit)`: Automated batch discovery and brainstorming for high-risk files.
+3. **Deep Brainstorm REST APIs (`routes-brainstorm.js`)**:
+   - New endpoints: `GET /v1/factory/brainstorm/inspect` and `POST /v1/factory/brainstorm/auto-hotspots`, plus `deep` flag support on `POST /v1/factory/brainstorm/start`.
+4. **Dashboard Monolith Slicing**:
+   - Proactive decomposition of `proxy/src/dashboard-html.js` (189 LOC) into `dashboard-html.js` (104 LOC) and `dashboard-client-script.js` (96 LOC).
+5. **Modular Next.js Deep Brainstorm Console (`BrainstormConsole.tsx` & `BrainstormStrategyPanel.tsx`)**:
+   - Enhanced with `--deep` toggle, Auto-Scan Hotspots button, Live Codebase Telemetry bar, 5-persona Socratic feed, and Module Split Blueprint preview.
+   - Total test suite coverage at 243/243 passing tests across 30 suites.

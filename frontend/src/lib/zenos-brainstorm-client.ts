@@ -8,6 +8,7 @@ const API_BASE = process.env.NEXT_PUBLIC_ZENOS_API_URL || 'http://localhost:4000
 export async function startBrainstormSession(params: {
   topic: string;
   targetFile?: string;
+  deep?: boolean;
   context?: { blastRadius?: number; complexity?: number };
 }): Promise<BrainstormSession | null> {
   try {
@@ -21,6 +22,21 @@ export async function startBrainstormSession(params: {
     return data.session;
   } catch {
     return null;
+  }
+}
+
+export async function autoBrainstormHotspots(limit = 3): Promise<BrainstormSession[]> {
+  try {
+    const res = await fetch(`${API_BASE}/v1/factory/brainstorm/auto-hotspots`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ limit })
+    });
+    if (!res.ok) return [];
+    const data = (await res.json()) as { sessions: BrainstormSession[] };
+    return data.sessions || [];
+  } catch {
+    return [];
   }
 }
 

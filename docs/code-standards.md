@@ -57,3 +57,9 @@
   $$ARI = 0.35 \cdot BR + 0.25 \cdot CC + 0.25 \cdot IR + 0.15 \cdot CP$$
 - Strategies exceeding $ARI \ge 60$ (CRITICAL) require explicit Dual-Key override before dispatch to `/zen`.
 - Candidate strategies must retain backward compatibility and preserve zero-external-dependency constraints.
+
+### 9. Deep Code-Introspective Brainstorming Standards (Gate 15)
+- All brainstorming sessions in deep mode (`/brainstorming --deep`) must execute through `DeepCodeInspector` to extract live AST/lexical seams and blast radius telemetry prior to dialectic debate.
+- Socratic Cross-Examination must follow the strict 5-turn pipeline: `ADVOCATE` $\rightarrow$ `ADVERSARY` $\rightarrow$ `CROSS_EXAMINER` $\rightarrow$ `REBUTTAL` $\rightarrow$ `SYNTHESIZER`.
+- Automated hotspot discovery (`autoBrainstormHotspots`) must rank workspace files by monolith risk and dependency blast radius, producing actionable submodule split blueprints (< 120 LOC).
+- Monolith decomposition must maintain 100% test coverage and zero regressions across all proxy and frontend suites.

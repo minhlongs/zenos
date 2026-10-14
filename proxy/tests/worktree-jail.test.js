@@ -20,14 +20,20 @@ test('WorktreeJail creates, lists, and safely removes ephemeral worktrees', asyn
 
   const jail = new WorktreeJail({ workspaceRoot: tmpRepo });
 
-  t.test('listWorktrees discovers main worktree', () => {
+  t.after(() => {
+    try {
+      fs.rmSync(tmpRepo, { recursive: true, force: true });
+    } catch {}
+  });
+
+  await t.test('listWorktrees discovers main worktree', () => {
     const list = jail.listWorktrees();
     assert.strictEqual(list.length, 1);
     assert.strictEqual(list[0].isMain, true);
     assert.strictEqual(list[0].branch, 'main');
   });
 
-  t.test('createWorktree creates isolated ephemeral worktree', () => {
+  await t.test('createWorktree creates isolated ephemeral worktree', () => {
     const wt = jail.createWorktree({ id: 'agent-1' });
     assert.strictEqual(wt.id, 'agent-1');
     assert.strictEqual(wt.branch, 'zenos/wt-agent-1');
@@ -40,17 +46,11 @@ test('WorktreeJail creates, lists, and safely removes ephemeral worktrees', asyn
     assert.strictEqual(created.isManaged, true);
   });
 
-  t.test('removeWorktree deletes worktree and branch', () => {
+  await t.test('removeWorktree deletes worktree and branch', () => {
     const res = jail.removeWorktree('agent-1', { deleteBranch: true });
     assert.strictEqual(res.success, true);
 
     const list = jail.listWorktrees();
     assert.strictEqual(list.length, 1);
-  });
-
-  t.after(() => {
-    try {
-      fs.rmSync(tmpRepo, { recursive: true, force: true });
-    } catch {}
   });
 });

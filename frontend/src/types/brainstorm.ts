@@ -1,8 +1,37 @@
 // frontend/src/types/brainstorm.ts
 'use strict';
 
-export type DebatePersona = 'ADVOCATE' | 'ADVERSARY' | 'SYNTHESIZER';
+export type DebatePersona =
+  | 'ADVOCATE'
+  | 'ADVERSARY'
+  | 'CROSS_EXAMINER'
+  | 'REBUTTAL'
+  | 'SYNTHESIZER';
 export type AriTier = 'SAFE' | 'CAUTION' | 'CRITICAL';
+
+export interface SubmoduleSlice {
+  path: string;
+  estimatedLoc: number;
+  responsibility: string;
+}
+
+export interface ModuleSplitBlueprint {
+  originalFile: string;
+  facadePath: string;
+  extractedSubmodules: SubmoduleSlice[];
+}
+
+export interface CodebaseTelemetry {
+  totalLines: number;
+  codeLines?: number;
+  branchingCount: number;
+  fanIn: number;
+  fanOut: number;
+  detectedSeams: number;
+  monolithScore: number;
+  blastRadiusScore: number;
+  riskLevel?: string;
+}
 
 export interface DebateTurn {
   persona: DebatePersona;
@@ -10,7 +39,9 @@ export interface DebateTurn {
   argument: string;
   riskIdentified?: boolean;
   invariantWarnings?: string[];
+  socraticQuestions?: string[];
   candidateStrategies?: BrainstormStrategy[];
+  splitBlueprint?: ModuleSplitBlueprint;
   consensusSummary?: string;
   timestamp: string;
 }
@@ -34,10 +65,13 @@ export interface BrainstormSession {
   id: string;
   topic: string;
   targetFile: string;
+  deep?: boolean;
   status: 'active' | 'completed';
+  telemetry?: CodebaseTelemetry;
   turns: DebateTurn[];
   strategies: BrainstormStrategy[];
   recommendedStrategy: BrainstormStrategy | null;
+  splitBlueprint?: ModuleSplitBlueprint;
   createdAt: string;
 }
 
